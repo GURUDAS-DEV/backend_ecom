@@ -52,24 +52,34 @@ async function userDb(name, email, phone) {
   }
 }
 
-// Function to process an array of order IDs for a specific user
 async function processOrderData(orderIds, userId) {
-  const query = `
-    UPDATE order_details
-    SET user_id = $1
-    WHERE order_id = ANY($2::text[])
-    RETURNING *;
-  `;
-  const values = [userId, orderIds];
-
   try {
-    const result = await executeQuery(query, values);
-    console.log("Order data processed successfully:", result);
-    return result; // Returns the updated order records
+      
+      for (const orderId of orderIds) {
+          
+          const orderQuery = 'SELECT sku, quantity FROM order_details WHERE order_id = $1';
+          const orderResults = await executeQuery(orderQuery, [orderId]);
+
+          if (orderResults.length > 0) {
+              const { sku, quantity } = orderResults[0];
+
+              const insertQuery = 'INSERT INTO cart_details (user_id, sku, quantity) VALUES ($1, $2, $3)';
+              await executeQuery(insertQuery, [userId, sku, quantity]);
+          } else {
+              console.warn(`Order ID ${orderId} not found in order_details`);
+          }
+      }
+
+      console.log("All orders processed and added to cart_details successfully.");
   } catch (error) {
-    console.error("Error processing order data:", error);
-    throw error;
+      console.error("Error in processOrderData:", error);
+      throw error;
   }
 }
 
-module.exports = { storeDataInDb, userDb, processOrderData };
+async function getCartDetails(userId) {
+  const query = 'SELECT * FROM cart_details WHERE user_id = $1';
+  return await executeQuery(query, [userId]);
+}
+
+module.exports = { storeDataInDb, userDb, processOrderData, getCartDetails };
