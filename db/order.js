@@ -34,6 +34,13 @@ async function storeDataInDb(sku, quantity, orderId) {
   }
 }
 
+async function findUserByEmail(email) {
+  const query = "SELECT id FROM users WHERE email = $1";
+  const result = await pool.query(query, [email]);
+
+  return result.rows[0]?.id || null; // Return userId if found, else null
+}
+
 async function userDb(name, email, phone) {
   const query = `
     INSERT INTO user_details (name, email, phone)
@@ -63,8 +70,8 @@ async function processOrderData(orderIds, userId) {
           if (orderResults.length > 0) {
               const { sku, quantity } = orderResults[0];
 
-              const insertQuery = 'INSERT INTO cart_details (user_id, sku, quantity) VALUES ($1, $2, $3)';
-              await executeQuery(insertQuery, [userId, sku, quantity]);
+              const insertQuery = 'INSERT INTO cart_details (user_id, sku, quantity, order_id) VALUES ($1, $2, $3, $4)';
+              await executeQuery(insertQuery, [userId, sku, quantity, orderId]);
           } else {
               console.warn(`Order ID ${orderId} not found in order_details`);
           }
@@ -77,9 +84,34 @@ async function processOrderData(orderIds, userId) {
   }
 }
 
-async function getCartDetails(userId) {
-  const query = 'SELECT * FROM cart_details WHERE user_id = $1';
-  return await executeQuery(query, [userId]);
+async function getCartDetails(orderId) {
+  const query = 'SELECT * FROM cart_details WHERE order_id = $1';
+  return await executeQuery(query, [orderId]);
 }
 
-module.exports = { storeDataInDb, userDb, processOrderData, getCartDetails };
+async function updateCart(userId, quantity, order_d) {
+  const query = 'UPDATE cart_details SET quantity = $2 WHERE user_id = $1 AND order_id = $3 RETURNING *';
+  const result = await executeQuery(query, [userId, quantity, order_id]);
+  if (result && result.length > 0) {
+    return result[0]; 
+  } else {
+    throw new Error("No rows returned from update query"); 
+  }
+}
+
+async function deleteCartItem(order_id) {
+  const query = 'DELETE FROM cart_details WHERE order_id = $1 RETURNING *';
+  const result = await executeQuery(query, [order_id]);
+  
+  console.log("delete cart item result:", result);
+  
+  if (result && result.length > 0) {
+    return result[0]; 
+  } else {
+    throw new Error("No rows deleted, item may not exist");
+  }
+}
+
+
+
+module.exports = { storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem };

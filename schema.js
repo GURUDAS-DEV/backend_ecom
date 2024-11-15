@@ -12,8 +12,7 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL statement to modify the column
     return client.query(`
-     ALTER TABLE cart_details DROP COLUMN items;
-
+     ALTER TABLE cart_details ADD COLUMN order_id VARCHAR(50);
 
 `);
   })
