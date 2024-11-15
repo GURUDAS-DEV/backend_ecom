@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
+const { z } = require("zod");
 const { v4: uuidv4 } = require("uuid");
 const { storeDataInDb, userDb, processOrderData, getCartDetails, updateCart, deleteCartItem, findUserByEmail } = require("../db/order"); 
 const { enquirySenderMail } = require("../mail/client-enquiry");
@@ -79,7 +80,7 @@ router.get("/getCart", async (req, res) => {
         const { orderId } = req.body; 
 
         if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
+            return res.status(400).json({ message: "order ID is required" });
         }
 
         const cartDetails = await getCartDetails(orderId);
