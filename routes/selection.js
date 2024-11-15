@@ -79,7 +79,7 @@ router.get("/getCart", async (req, res) => {
     try {
         const { orderId } = req.body; 
 
-        if (!userId) {
+        if (!orderId) {
             return res.status(400).json({ message: "order ID is required" });
         }
 
