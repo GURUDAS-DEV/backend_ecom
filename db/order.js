@@ -36,7 +36,7 @@ async function storeDataInDb(sku, quantity, name, orderId) {
 }
 
 async function findUserByEmail(email) {
-  const query = "SELECT id FROM users WHERE email = $1";
+  const query = "SELECT id FROM user_details WHERE email = $1";
   const result = await pool.query(query, [email]);
 
   return result.rows[0]?.id || null; // Return userId if found, else null
