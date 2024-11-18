@@ -71,14 +71,25 @@ async function userDb(name, email, phone) {
 async function processOrderData(orderIds, email) {
   try {
 
-    const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1 RETURNING id", [email]);
+    const userQuery = "SELECT id FROM user_details WHERE email = $1";
+    const userResult = await executeQuery(userQuery, [email]);
+
+    // Debugging: Log the query result
+    console.log("User Query Result:", userResult);
+
+    // Safely extract userId
+    const userId = userResult[0].id;
+    console.log(userId)
+    if (!userId) {
+      throw new Error("User not found for the given email");
+    }
+
     // Insert into cart_details and get the generated cart_id
     const insertCartQuery = `
       INSERT INTO cart_details (user_id)
       VALUES ($1)
       RETURNING id`;
-    const cartResult = await executeQuery(insertCartQuery, [userId.id]);
-
+    const cartResult = await executeQuery(insertCartQuery, [userId]);
     if (cartResult.length === 0) {
       throw new Error("Failed to insert into cart_details");
     }
