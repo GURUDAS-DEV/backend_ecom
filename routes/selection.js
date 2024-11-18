@@ -32,7 +32,7 @@ router.post("/order", async (req, res) => {
   try {
     const { sku, quantity, name } = req.body;
 
-    if (!sku || !quantity || name) {
+    if (!sku || !quantity || !name) {
       return res.status(400).json({ success: false, message: "SKU and quantity or name are required" });
     }
 
@@ -73,13 +73,13 @@ router.post("/user", async (req, res) => {
 // POST /create - Process order data
 router.post("/create", async (req, res) => {
   try {
-    const { userId, orderIds } = req.body;
+    const { email, orderIds } = req.body;
 
-    if (!userId || !Array.isArray(orderIds)) {
+    if (!email || !Array.isArray(orderIds)) {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
 
-    await processOrderData(orderIds, userId);
+    await processOrderData(orderIds, email);
     res.status(201).json({ success: true, message: "Data processed successfully" });
   } catch (error) {
     console.error("Error in /create route:", error);
