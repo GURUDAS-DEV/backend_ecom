@@ -17,8 +17,7 @@ async function executeQuery(query, values = []) {
   }
 }
 
-async function storeDataInDb(sku, quantity, orderId) {
-  const name = parseSKUToString(sku)
+async function storeDataInDb(sku, quantity, name, orderId) {
     const query = `
     INSERT INTO order_details (sku, quantity, order_id, name)
     VALUES ($1, $2, $3, $4)

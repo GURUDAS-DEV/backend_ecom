@@ -30,14 +30,14 @@ const userSchema = z.object({
 // POST /order - Store order details
 router.post("/order", async (req, res) => {
   try {
-    const { sku, quantity } = req.body;
+    const { sku, quantity, name } = req.body;
 
-    if (!sku || !quantity) {
-      return res.status(400).json({ success: false, message: "SKU and quantity are required" });
+    if (!sku || !quantity || name) {
+      return res.status(400).json({ success: false, message: "SKU and quantity or name are required" });
     }
 
     const uniqueId = generateSmallId();
-    await storeDataInDb(sku, quantity, uniqueId);
+    await storeDataInDb(sku, quantity,name, uniqueId);
 
     res.status(201).json({ success: true, id: uniqueId, message: "Data stored successfully" });
   } catch (error) {

@@ -69,7 +69,23 @@ function parseSKUToString(sku) {
   const sizeValue = sizeToCombination(size);
 
   // Return the combination
-  return  `${technologyValue} ${typeValue} ${voltageValue} ${coreValue} ${sizeValue} ${cableTypeValue} ${conductorValue}`
+  return {
+    Technology: technologyValue,
+    Type: typeValue,
+    Voltage: voltageValue,
+    Core: coreValue,
+    Size: sizeValue,
+    CableType: cableTypeValue,
+    Conductor: conductorValue,
+    SKU: sku,
+    Combination: `${technologyValue} ${typeValue} ${voltageValue} ${coreValue} ${sizeValue} ${cableTypeValue} ${conductorValue}`
+  };
 }
+
+// Example SKU
+const sku = '3MHS_A_022E_01C0120';
+const combination = parseSKUToString(sku);
+
+console.log(combination);
 
 module.exports = parseSKUToString
