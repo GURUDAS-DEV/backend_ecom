@@ -13,7 +13,7 @@ client.connect()
     // Execute the SQL statement to modify the column
     return client.query(`
     ALTER TABLE cart_details
-ADD COLUMN order_ids JSON;
+DROP COLUMN order_ids;
 
      `);
   })

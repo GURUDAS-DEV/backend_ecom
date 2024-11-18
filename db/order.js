@@ -60,18 +60,16 @@ async function userDb(name, email, phone) {
   }
 }
 
-async function processOrderData(orderIds, email) {
+async function processOrderData(email) {
   try {
-    // Convert orderIds array to JSON string
-    const orderIdsJson = JSON.stringify(orderIds);
 
     const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1 RETURNING id", [email]);
     // Insert into cart_details and get the generated cart_id
     const insertCartQuery = `
-      INSERT INTO cart_details (user_id, order_ids)
-      VALUES ($1, $2)
+      INSERT INTO cart_details (user_id)
+      VALUES ($1)
       RETURNING id`;
-    const cartResult = await executeQuery(insertCartQuery, [userId.id, orderIdsJson]);
+    const cartResult = await executeQuery(insertCartQuery, [userId.id]);
 
     if (cartResult.length === 0) {
       throw new Error("Failed to insert into cart_details");
