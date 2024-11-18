@@ -68,10 +68,10 @@ async function userDb(name, email, phone) {
   }
 }
 
-async function processOrderData(email) {
+async function processOrderData(orderIds, email) {
   try {
 
-    const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1 RETURNING id", [email]);
+    const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1", [email]);
     // Insert into cart_details and get the generated cart_id
     const insertCartQuery = `
       INSERT INTO cart_details (user_id)
@@ -100,7 +100,6 @@ async function processOrderData(email) {
         console.warn(`Order ID ${orderId} not found in order_details`);
       }
     }
-
     console.log("All orders processed and added to cart_details successfully.");
   } catch (error) {
     console.error("Error in processOrderData:", error);
