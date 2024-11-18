@@ -1,4 +1,4 @@
-const technology = ['Heat Shrink'];
+/*const technology = ['Heat Shrink'];
 const type_ = ['Indoor', 'Outdoor', 'Straight through'];
 const voltage = ['1.1KV(E)', '6.6KV(UE)/11KV(E)', '11KV(UE)/22KV(E)', '22KV(E)', '33KV(E)', '33KV(UE)', '66KV(E)'];
 const core = ['1 CORE', '2 CORE', '3 CORE', '3.5 CORE', '4 CORE'];
@@ -89,3 +89,4 @@ const combination = parseSKUToString(sku);
 console.log(combination);
 
 module.exports = parseSKUToString
+*/

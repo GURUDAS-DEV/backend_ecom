@@ -1,6 +1,6 @@
 const { Pool } = require("pg"); 
 const path = require("path");
-const  parseSKUToString  = require("./sku");
+//const  parseSKUToString  = require("./sku");
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const pool = new Pool({
