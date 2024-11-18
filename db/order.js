@@ -71,7 +71,7 @@ async function userDb(name, email, phone) {
 async function processOrderData(orderIds, email) {
   try {
 
-    const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1", [email]);
+    const userId = await executeQuery("SELECT id FROM user_details WHERE email = $1 RETURNING id", [email]);
     // Insert into cart_details and get the generated cart_id
     const insertCartQuery = `
       INSERT INTO cart_details (user_id)
