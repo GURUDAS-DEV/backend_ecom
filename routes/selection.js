@@ -13,7 +13,6 @@ const {
   findUserByEmail,
   getALLCartDetails
 } = require("../db/order"); 
-const { enquirySenderMail } = require("../mail/client-enquiry");
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
@@ -22,23 +21,24 @@ router.use(express.json());
 const generateSmallId = () => uuidv4().substring(0, 6);
 
 const userSchema = z.object({
-  name: z.string().min(1, "Name is required"), // Ensures name is provided
-  email: z.string().email("Invalid email format"), // Validates email format
-  phone: z.string().optional() // Allows phone to be optional
+  name: z.string().min(1, "Name is required"), 
+  email: z.string().email("Invalid email format"), 
+  phone: z.string().optional() 
 });
 
-// POST /order - Store order details
 router.post("/order", async (req, res) => {
   try {
-    const { sku, quantity, name } = req.body;
+    const orderDetails = req.body;
+    const { sku, quantity, name, cat_no } = orderDetails;
 
-    if (!sku || !quantity || !name) {
-      return res.status(400).json({ success: false, message: "SKU and quantity or name are required" });
+    if (!sku || !quantity || !name || !cat_no) {
+      return res.status(400).json({
+        success: false,
+        message: "SKU, quantity, and name are required"
+      });
     }
-
     const uniqueId = generateSmallId();
-    await storeDataInDb(sku, quantity,name, uniqueId);
-
+    await storeDataInDb(orderDetails, uniqueId);
     res.status(201).json({ success: true, id: uniqueId, message: "Data stored successfully" });
   } catch (error) {
     console.error("Error in /order route:", error);
@@ -46,40 +46,32 @@ router.post("/order", async (req, res) => {
   }
 });
 
-// POST /user - Create or fetch user
 router.post("/user", async (req, res) => {
   try {
     const parsedBody = userSchema.parse(req.body);
     const { name, email, phone } = parsedBody;
-
     const existingUser = await findUserByEmail(email);
-
     if (existingUser) {
       return res.status(200).json({ success: true, userId: existingUser });
     }
-
     const id = await userDb(name, email, phone);
     res.status(201).json({ success: true, userId: id });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ success: false, message: error.errors });
     }
-
     console.error("Error in /user route:", error);
     res.status(500).json({ success: false, message: "An error occurred while processing user data" });
   }
 });
 
-// POST /create - Process order data
 router.post("/create", async (req, res) => {
   try {
     const { email, orderIds } = req.body;
-
     if (!email || !Array.isArray(orderIds)) {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
-
-    await processOrderData(orderIds, email);
+    await processOrderData(orderIds, email, "New");
     res.status(201).json({ success: true, message: "Data processed successfully" });
   } catch (error) {
     console.error("Error in /create route:", error);
@@ -87,21 +79,16 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// GET /getCart/:orderId - Get cart details
 router.get("/getCart/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
-
     if (!orderId) {
       return res.status(400).json({ success: false, message: "Order ID is required" });
     }
-
     const itemDetails = await getCartDetails(orderId);
-
     if (!itemDetails) {
       return res.status(404).json({ success: false, message: "Cart details not found" });
     }
-
     res.status(200).json({ success: true, item: itemDetails });
   } catch (error) {
     console.error("Error in /getCart route:", error);
@@ -112,36 +99,27 @@ router.get("/getCart/:orderId", async (req, res) => {
 router.get("/getCart", async (req, res) => {
     try {
       const { cartId } = req.body;
-  
       if (!cartId) {
         return res.status(400).json({ success: false, message: "Cart ID is required" });
       }
-  
       const itemDetails = await getALLCartDetails(cartId);
-  
       if (!itemDetails) {
         return res.status(404).json({ success: false, message: "Cart details not found" });
       }
-  
       res.status(200).json({ success: true, item: itemDetails });
     } catch (error) {
       console.error("Error in /getCart route:", error);
       res.status(500).json({ success: false, message: "An error occurred while fetching cart details" });
     }
-  });
-  
+});
 
-// PUT /cartUpdate - Update cart details
 router.put("/cartUpdate", async (req, res) => {
   try {
     const {  quantity, orderId } = req.body;
-
     if ( !quantity || !orderId) {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
-
     const updateDetails = await updateCart( quantity, orderId);
-
     res.status(200).json({ success: true, cart: updateDetails });
   } catch (error) {
     console.error("Error in /cartUpdate route:", error);
@@ -149,21 +127,16 @@ router.put("/cartUpdate", async (req, res) => {
   }
 });
 
-// DELETE /itemDelete - Delete cart item
 router.delete("/itemDelete", async (req, res) => {
   try {
     const { orderId } = req.body;
-
     if (!orderId) {
       return res.status(400).json({ success: false, message: "Order ID is required" });
     }
-
     const deleteDetails = await deleteCartItem(orderId);
-
     if (!deleteDetails) {
       return res.status(404).json({ success: false, message: "Cart item not found" });
     }
-
     res.status(200).json({ success: true, cart: deleteDetails });
   } catch (error) {
     console.error("Error in /itemDelete route:", error);

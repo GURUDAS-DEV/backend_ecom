@@ -1,10 +1,20 @@
-const { Pool } = require("pg"); 
+const { Pool } = require("pg");
+const nodemailer = require("nodemailer"); 
 const path = require("path");
-//const  parseSKUToString  = require("./sku");
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const pool = new Pool({
     connectionString: process.env.DB_CONNECTION_STRING  
+});
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_MAIL,
+    pass: process.env.SMTP_PASSWORD,
+  },
 });
 
 async function executeQuery(query, values = []) {
@@ -17,13 +27,24 @@ async function executeQuery(query, values = []) {
   }
 }
 
-async function storeDataInDb(sku, quantity, name, orderId) {
-    const query = `
-    INSERT INTO order_details (sku, quantity, order_id, name)
-    VALUES ($1, $2, $3, $4)
+async function storeDataInDb(orderDetails, orderId) {
+  // Dynamically get the column names and values from orderDetails
+  const columns = Object.keys(orderDetails);
+  const values = Object.values(orderDetails);
+
+  // Add order_id to the columns and values
+  columns.push('order_id');
+  values.push(orderId);
+
+  // Generate a placeholder string for values (e.g., $1, $2, $3, ...)
+  const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
+
+  // Create the dynamic SQL query
+  const query = `
+    INSERT INTO order_details (${columns.join(", ")})
+    VALUES (${placeholders})
     RETURNING *;
   `;
-  const values = [sku, quantity, orderId, name];
 
   try {
     const result = await executeQuery(query, values);
@@ -68,35 +89,28 @@ async function userDb(name, email, phone) {
   }
 }
 
-async function processOrderData(orderIds, email) {
+async function processOrderData(orderIds, email, status) {
   try {
 
     const userQuery = "SELECT id FROM user_details WHERE email = $1";
     const userResult = await executeQuery(userQuery, [email]);
 
-    // Debugging: Log the query result
-    console.log("User Query Result:", userResult);
-
-    // Safely extract userId
     const userId = userResult[0].id;
-    console.log(userId)
     if (!userId) {
       throw new Error("User not found for the given email");
     }
 
-    // Insert into cart_details and get the generated cart_id
     const insertCartQuery = `
-      INSERT INTO cart_details (user_id)
-      VALUES ($1)
+      INSERT INTO cart_details (user_id, status)
+      VALUES ($1, $2)
       RETURNING id`;
-    const cartResult = await executeQuery(insertCartQuery, [userId]);
+    const cartResult = await executeQuery(insertCartQuery, [userId], status);
     if (cartResult.length === 0) {
       throw new Error("Failed to insert into cart_details");
     }
 
     const cartId = cartResult[0].id;
 
-    // Update order_details with the generated cart_id
     for (const orderId of orderIds) {
       const orderQuery = 'SELECT sku, quantity FROM order_details WHERE order_id = $1';
       const orderResults = await executeQuery(orderQuery, [orderId]);
@@ -111,13 +125,11 @@ async function processOrderData(orderIds, email) {
         console.warn(`Order ID ${orderId} not found in order_details`);
       }
     }
-    console.log("All orders processed and added to cart_details successfully.");
   } catch (error) {
     console.error("Error in processOrderData:", error);
     throw error;
   }
 }
-
 
 async function getCartDetails(orderId) {
   const query = 'SELECT * FROM order_details WHERE order_id = $1';
@@ -128,7 +140,6 @@ async function getALLCartDetails(cartId) {
   const query = 'SELECT * FROM order_details WHERE cart_id = $1';
   return await executeQuery(query, [cartId]);
 }
-
 
 async function updateCart(quantity, order_id) {
   const query = 'UPDATE order_details SET quantity = $1 WHERE order_id = $2 RETURNING *';
@@ -144,8 +155,6 @@ async function deleteCartItem(order_id) {
   const query = 'DELETE FROM order_details WHERE order_id = $1 RETURNING *';
   const result = await executeQuery(query, [order_id]);
   
-  console.log("delete cart item result:", result);
-  
   if (result && result.length > 0) {
     return result[0]; 
   } else {
@@ -153,6 +162,33 @@ async function deleteCartItem(order_id) {
   }
 }
 
+async function enquireMail(email, cart_id, subject) {
+  try {
+    const query = `
+      SELECT sku, name, quantity 
+      FROM order_details 
+      WHERE cart_id = $1
+    `;
+    const values = [cart_id];
+    const result = await db.query(query, values); 
+    let message = `Order Details for Cart ID: ${cart_id}\n\n`;
+    result.rows.forEach((row, index) => {
+      message += `${index + 1}. SKU: ${row.sku}, Name: ${row.name}, Quantity: ${row.quantity}\n`;
+    });
 
+    const mailOptions = {
+      from: process.env.SMTP_MAIL,
+      to: email,
+      subject: subject,
+      text: message,
+    };
 
-module.exports = { getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem };
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw new Error("Error sending email notification");
+  }
+}
+
+module.exports = { getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };

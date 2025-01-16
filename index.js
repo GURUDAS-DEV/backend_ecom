@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const job = require("./routes/sendmail");
 const pay = require("./routes/selection");
+const admin = require("./routes/admin")
 const cookieParser = require('cookie-parser');
 
 app.use(express.json());
@@ -18,6 +19,7 @@ app.use(
 
 app.use("/api/v1", job);
 app.use("/api/v1", pay);
+app.use("/api/v1", admin)
 
 app.get("/", (req, res) => {
   res.send("Server is up and running!");

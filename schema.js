@@ -12,9 +12,9 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL statement to modify the column
     return client.query(`
-    ALTER TABLE cart_details
-DROP COLUMN order_ids;
-
+ SELECT id, quantity, technology, type, voltage, core, size, cabletype, conductor 
+          FROM order_details 
+          WHERE cart_id = 21 AND sku = '3MHI_X_AA_1.1E_01C0006'
      `);
   })
   .then(() => {
