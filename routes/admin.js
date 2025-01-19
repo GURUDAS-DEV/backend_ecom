@@ -40,17 +40,15 @@ router.post("/quotation", async (req, res) => {
             console.log("data", data)
             const { cart_id, order_id, rate, discount } = data;
 
-            if (!cart_id || !order_id || rate == null || discount == null) {
+            if (!cart_id || !order_id || rate == null ) {
                 return res.status(400).json({
                     success: false,
                     message: "Missing required fields in one of the objects",
                 });
             }
-
              await quotation(rate, discount, order_id, cart_id);
         }
         const response = await  fetchAndCategorizeData(cart_id)
-        console.log("Response from fetchAndCategorizeData:", response);
         const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3)
         res.status(200).json({ success: true, final_response });
     } catch (error) {

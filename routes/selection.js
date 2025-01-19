@@ -50,7 +50,9 @@ router.post("/user", async (req, res) => {
   try {
     const parsedBody = userSchema.parse(req.body);
     const { name, email, phone } = parsedBody;
+    console.log(email)
     const existingUser = await findUserByEmail(email);
+
     if (existingUser) {
       return res.status(200).json({ success: true, userId: existingUser });
     }

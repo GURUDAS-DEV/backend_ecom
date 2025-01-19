@@ -63,12 +63,10 @@ async function findUserByEmail(email) {
 
   const query = "SELECT id FROM user_details WHERE LOWER(email) = LOWER($1)";
   const result = await executeQuery(query, [email.trim()]);
-
-  if (!result || !result.rows || result.rows.length === 0) {
+  if (!result ) {
     return null; // Return null if user is not found
   }
-
-  return result.rows[0].id; // Return userId if found
+  return result[0].id; // Return userId if found
 }
 
 async function userDb(name, email, phone) {

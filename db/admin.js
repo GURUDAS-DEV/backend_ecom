@@ -165,7 +165,7 @@ async function executeQuery(query, values = []) {
         VALUES ($1, $2, $3, $4)
         RETURNING *;
       `;
-      const result = await executeQuery(query, [price, discount, cart_id, order_id]);
+       await executeQuery(query, [price, discount, cart_id, order_id]);
       
     } catch (error) {
       console.error("Error inserting quotation:", error);
