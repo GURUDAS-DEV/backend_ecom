@@ -51,7 +51,7 @@ router.post("/quotation", async (req, res) => {
         }
         const response = await  fetchAndCategorizeData(cart_id)
         console.log("Response from fetchAndCategorizeData:", response);
-        const final_response = await finalizeQuotation(cart_id, response.heatshrink)
+        const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3)
         res.status(200).json({ success: true, final_response });
     } catch (error) {
         console.error("Error in /quotation", error);

@@ -31,10 +31,10 @@ router.post("/order", async (req, res) => {
     const orderDetails = req.body;
     const { sku, quantity, name, cat_no } = orderDetails;
 
-    if (!sku || !quantity || !name || !cat_no) {
+    if ( !quantity || !name ) {
       return res.status(400).json({
         success: false,
-        message: "SKU, quantity, and name are required"
+        message: " quantity, and name are required"
       });
     }
     const uniqueId = generateSmallId();
