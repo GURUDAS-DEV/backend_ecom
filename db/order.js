@@ -103,7 +103,8 @@ async function processOrderData(orderIds, email, status) {
       VALUES ($1, $2)
       RETURNING id`;
     const cartResult = await executeQuery(insertCartQuery, [userId], status);
-    if (cartResult.length === 0) {
+    console.log(cartResult)
+    if (!cartResult) {
       throw new Error("Failed to insert into cart_details");
     }
 
