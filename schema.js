@@ -12,8 +12,8 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL statement to modify the column
     return client.query(`
-      ALTER TABLE order_details
-ALTER COLUMN sku DROP NOT NULL;
+      ALTER TABLE quotation
+      ADD COLUMN delivery VARCHAR(255);
 
      `);
   })

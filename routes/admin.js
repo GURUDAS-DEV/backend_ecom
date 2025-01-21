@@ -29,27 +29,29 @@ router.post("/statusUpdate", async(req,res)=>{
 
 router.post("/quotation", async (req, res) => {
     try {
-        const dataArray = req.body; 
+        const dataArray = req.body;
         if (!Array.isArray(dataArray)) {
             return res.status(400).json({ success: false, message: "Invalid input format. Expected an array of objects." });
         }
-        console.log("dataarray", dataArray)
+        const Payment = dataArray.Payment
+        const Validity = dataArray.Validity
         const cart_id = dataArray[0]?.cart_id;
-        console.log(cart_id)
         for (const data of dataArray) {
-            console.log("data", data)
-            const { cart_id, order_id, rate, discount } = data;
+            const { cart_id, order_id, rate, discount, delivery } = data;
 
-            if (!cart_id || !order_id || rate == null ) {
+            if (!cart_id || !order_id || rate == null || delivery == null) {
                 return res.status(400).json({
                     success: false,
                     message: "Missing required fields in one of the objects",
                 });
             }
-             await quotation(rate, discount, order_id, cart_id);
+
+            await quotation(rate, discount, order_id, cart_id, delivery);
         }
-        const response = await  fetchAndCategorizeData(cart_id)
-        const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3)
+
+        const response = await fetchAndCategorizeData(cart_id);
+        const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
+
         res.status(200).json({ success: true, final_response });
     } catch (error) {
         console.error("Error in /quotation", error);
@@ -59,6 +61,7 @@ router.post("/quotation", async (req, res) => {
         });
     }
 });
+
 
 
 module.exports = router;

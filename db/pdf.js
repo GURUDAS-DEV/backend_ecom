@@ -2,7 +2,7 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-async function heatshrinkpdf(quotationDetails) {
+async function heatshrinkpdf(quotationDetails, payment, validity) {
   const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
   if (!fs.existsSync(pdfsFolderPath)) {
     fs.mkdirSync(pdfsFolderPath);
@@ -84,7 +84,7 @@ async function heatshrinkpdf(quotationDetails) {
       .text(item.description, 70, yPos)
       .text(item.cableOd, 200, yPos)
       .text(item.catNo, 290, yPos)
-      .text(item.hsn, 360, yPos)
+      .text("85469090", 360, yPos)
       .text(item.quantity, 420, yPos)
       .text(`₹${item.rate}`, 470, yPos)
       .text(`₹${(item.rate * item.quantity)}`, 550, yPos)
@@ -127,7 +127,7 @@ async function heatshrinkpdf(quotationDetails) {
     .text('TOTAL', 470, yPos)
     .text(`₹${(totalAmount * 1.18).toFixed(2)}`, 550, yPos, { align: 'right' });
 
-  // Footer Section
+  // Footer Section with Payment and Validity
   yPos += 30;
   doc
     .fontSize(10)
@@ -138,22 +138,29 @@ async function heatshrinkpdf(quotationDetails) {
     .moveDown(0.5)
     .text('GST: Extra @ 18%', 50, yPos + 20)
     .text('Payment:', 50, yPos + 40)
-    .text('Validity: 7 Days', 50, yPos + 60);
+    .text(payment || '---', 120, yPos + 40) // Dynamic Payment
+    .text('Validity:', 50, yPos + 60)
+    .text(validity || '---', 120, yPos + 60); // Dynamic Validity
 
   // Save PDF
   doc.pipe(fs.createWriteStream(filePath));
   doc.end();
 
   console.log(`PDF generated at: ${filePath}`);
-  return true;
 }
 
+async function dowellspdf(quotationDetails, payment) {
+  const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
+  if (!fs.existsSync(pdfsFolderPath)) {
+    fs.mkdirSync(pdfsFolderPath);
+  }
 
- async function dowellspdf(quotationDetails, filePath) {
+  const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
   const doc = new PDFDocument({ margin: 50 });
 
+  // Header Section
   doc
-    .image("logo.png", 50, 45, { width: 50 }) 
+    .image("logo.png", 50, 45, { width: 50 })
     .fontSize(20)
     .text("Sheth Trading Corporation", 110, 57)
     .fontSize(10)
@@ -161,13 +168,13 @@ async function heatshrinkpdf(quotationDetails) {
     .text("Kolkata, West Bengal, 700073", 200, 80, { align: "left" })
     .text("Phone: 40240300/22379239", 200, 95, { align: "left" })
     .text("Email: enquiry@shethtrading.com", 200, 110, { align: "left" })
-    .text("Bank Details", 200, 80, { align: "right" })
-    .text("Bank Name: HDFC BANK LTD", 200, 80, { align: "right" })
-    .text("Branch:  India Exchange Place", 200, 80, { align: "right" })
-    .text("A/c No. : 12422320004133", 200, 80, { align: "right" })
-    .text("IFSC :  HDFC0001242", 200, 80, { align: "right" })
-    .moveDown();
+    .text("Bank Details", 400, 60, { align: "right" })
+    .text("Bank Name: HDFC BANK LTD", 400, 75, { align: "right" })
+    .text("Branch: India Exchange Place", 400, 90, { align: "right" })
+    .text("A/c No.: 12422320004133", 400, 105, { align: "right" })
+    .text("IFSC: HDFC0001242", 400, 120, { align: "right" });
 
+  // Table Header
   const tableTop = 200;
   const itemSpacing = 20;
 
@@ -183,36 +190,52 @@ async function heatshrinkpdf(quotationDetails) {
     .text("Amount ₹", 620, tableTop, { bold: true })
     .text("Delivery", 700, tableTop, { bold: true });
 
-  doc.moveTo(50, tableTop + 15).lineTo(850, tableTop + 15).stroke(); 
+  doc.moveTo(50, tableTop + 15).lineTo(850, tableTop + 15).stroke();
 
+  // Table Rows
   let yPos = tableTop + itemSpacing;
 
   quotationDetails.items.forEach((item, index) => {
     const discountedAmount = item.rate * item.quantity * (1 - (item.discount || 0) / 100);
 
     doc.fontSize(10)
-      .text(index + 1, 50, yPos) 
-      .text(item.description, 70, yPos) 
-      .text(item.cableOd, 220, yPos) 
-      .text(item.catNo, 300, yPos) 
-      .text(item.hsn, 380, yPos) 
-      .text(item.quantity, 440, yPos) 
-      .text(`₹${item.rate.toFixed(2)}`, 500, yPos) 
-      .text(`${item.discount || 0}%`, 560, yPos) 
-      .text(`₹${discountedAmount.toFixed(2)}`, 620, yPos) 
-      .text(item.delivery, 700, yPos); 
+      .text(index + 1, 50, yPos)
+      .text(item.description, 70, yPos)
+      .text(item.cableOd, 220, yPos)
+      .text(item.catNo, 300, yPos)
+      .text(item.hsn, 380, yPos)
+      .text(item.quantity, 440, yPos)
+      .text(`₹${item.rate.toFixed(2)}`, 500, yPos)
+      .text(`${item.discount || 0}%`, 560, yPos)
+      .text(`₹${discountedAmount.toFixed(2)}`, 620, yPos)
+      .text(item.delivery, 700, yPos);
 
     yPos += itemSpacing;
   });
 
+  // Summary Section
   const totalAmount = quotationDetails.items.reduce(
     (sum, item) => sum + item.rate * item.quantity * (1 - (item.discount || 0) / 100),
     0
   );
+
   doc
     .fontSize(12)
     .text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 620, yPos + 10, { bold: true });
 
+  yPos += 40;
+
+  // Payment and Validity Section
+  doc
+    .fontSize(10)
+    .text("Payment:", 50, yPos)
+    .text(payment || "N/A", 120, yPos)
+    .text("Validity:", 300, yPos)
+    .text("7 days validity" || "N/A", 360, yPos);
+
+  yPos += 40;
+
+  // Footer Section
   doc
     .fontSize(10)
     .text(
@@ -222,11 +245,17 @@ async function heatshrinkpdf(quotationDetails) {
       { align: "center", width: 500 }
     );
 
+  // Save PDF
   doc.pipe(fs.createWriteStream(filePath));
   doc.end();
 }
 
-async function Rest3M(quotationDetails, filePath) {
+async function Rest3M(quotationDetails, payment, validity) {
+  const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
+  if (!fs.existsSync(pdfsFolderPath)) {
+    fs.mkdirSync(pdfsFolderPath);
+  }
+  const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
   const doc = new PDFDocument({ margin: 50 });
 
   doc
@@ -267,7 +296,7 @@ async function Rest3M(quotationDetails, filePath) {
     doc.fontSize(10)
       .text(index + 1, 50, yPos) 
       .text(item.description, 70, yPos) 
-      .text(item.hsn, 300, yPos) 
+      .text("85469090", 300, yPos) 
       .text(item.quantity, 380, yPos) 
       .text(`₹${item.rate.toFixed(2)}`, 440, yPos) 
       .text(`₹${sum.toFixed(2)}`, 500, yPos) 
@@ -283,6 +312,18 @@ async function Rest3M(quotationDetails, filePath) {
   doc
     .fontSize(12)
     .text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 500, yPos + 10, { bold: true });
+
+  // Payment and Validity Section
+  doc
+    .fontSize(10)
+    .text("Payment:", 50, yPos)
+    .text(payment || "N/A", 120, yPos)
+    .text("Validity:", 300, yPos)
+    .text(validity || "N/A", 360, yPos);
+
+  yPos += 40;
+
+  // Footer Section
 
   doc
     .fontSize(10)
