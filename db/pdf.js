@@ -9,7 +9,6 @@ async function heatshrinkpdf(quotationDetails, payment, validity) {
   }
 
   const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
-  console.log(filePath);
 
   const doc = new PDFDocument({ margin: 50 });
 
@@ -146,7 +145,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity) {
   doc.pipe(fs.createWriteStream(filePath));
   doc.end();
 
-  console.log(`PDF generated at: ${filePath}`);
+  console.log(` hs PDF generated at: ${filePath}`);
 }
 
 async function dowellspdf(quotationDetails, payment) {
@@ -205,9 +204,9 @@ async function dowellspdf(quotationDetails, payment) {
       .text(item.catNo, 300, yPos)
       .text(item.hsn, 380, yPos)
       .text(item.quantity, 440, yPos)
-      .text(`₹${item.rate.toFixed(2)}`, 500, yPos)
+      .text(`₹${item.rate}`, 500, yPos)
       .text(`${item.discount || 0}%`, 560, yPos)
-      .text(`₹${discountedAmount.toFixed(2)}`, 620, yPos)
+      .text(`₹${discountedAmount}`, 620, yPos)
       .text(item.delivery, 700, yPos);
 
     yPos += itemSpacing;
@@ -248,6 +247,7 @@ async function dowellspdf(quotationDetails, payment) {
   // Save PDF
   doc.pipe(fs.createWriteStream(filePath));
   doc.end();
+  console.log(` dowells PDF generated at: ${filePath}`);
 }
 
 async function Rest3M(quotationDetails, payment, validity) {
@@ -298,8 +298,8 @@ async function Rest3M(quotationDetails, payment, validity) {
       .text(item.description, 70, yPos) 
       .text("85469090", 300, yPos) 
       .text(item.quantity, 380, yPos) 
-      .text(`₹${item.rate.toFixed(2)}`, 440, yPos) 
-      .text(`₹${sum.toFixed(2)}`, 500, yPos) 
+      .text(`₹${item.rate}`, 440, yPos) 
+      .text(`₹${sum}`, 500, yPos) 
       .text(item.delivery, 620, yPos); 
 
     yPos += itemSpacing;
@@ -336,6 +336,7 @@ async function Rest3M(quotationDetails, payment, validity) {
 
   doc.pipe(fs.createWriteStream(filePath));
   doc.end();
+  console.log(` rest3m PDF generated at: ${filePath}`);
 }
 
 

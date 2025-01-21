@@ -1,7 +1,7 @@
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer"); 
 const path = require("path");
-const { heatshrinkpdf, Rest3M } = require("./pdf");
+const { heatshrinkpdf, Rest3M, dowellspdf } = require("./pdf");
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const pool = new Pool({
@@ -111,6 +111,7 @@ async function executeQuery(query, values = []) {
   }
 
   async function finalizeQuotation(cart_id, heatshrink, dowells, m3, payment, validity) {
+    console.log("heatshrink", heatshrink,"dowells",dowells, "m3", m3)
     try {
       // Handle Heatshrink
       const heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity);
@@ -147,12 +148,13 @@ async function executeQuery(query, values = []) {
     return response;
   }
   
-  async function processDowells( dowells, payment) {
+  async function processDowells( cart_id,dowells, payment) {
+    console.log("dowells", dowells)
     const quotationDetails = {
       items: [],
     };
     for (const cat_no of dowells) {
-      const item = await fetchdowellsItemDetails(cat_no);
+      const item = await fetchdowellsItemDetails(cart_id, cat_no);
       if (item) {
         quotationDetails.items.push(item);
       }
@@ -334,15 +336,22 @@ async function executeQuery(query, values = []) {
       const dowells = [];
   
       result.forEach(({ sku, cat_no }) => {
-        if (sku.startsWith("3MHS") || sku.startsWith("3MHI") || sku.startsWith("3MHO")) {
-          heatshrink.push(sku);
-        } else {
-          m3.push(sku);
+        // Check if `sku` is valid before calling startsWith
+        if (sku) {
+            if (sku.startsWith("3MHS") || sku.startsWith("3MHI") || sku.startsWith("3MHO")) {
+                heatshrink.push(sku);
+            } else {
+                m3.push(sku);
+            }
         }
+    
+        // Check if `cat_no` is valid before adding it to `dowells`
         if (cat_no) {
-          dowells.push(cat_no);
+            dowells.push(cat_no);
         }
-      });
+    });
+    
+      
       
       return { heatshrink, m3, dowells };
     } catch (error) {

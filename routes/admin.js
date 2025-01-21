@@ -29,30 +29,47 @@ router.post("/statusUpdate", async(req,res)=>{
 
 router.post("/quotation", async (req, res) => {
     try {
-        const dataArray = req.body;
-        if (!Array.isArray(dataArray)) {
-            return res.status(400).json({ success: false, message: "Invalid input format. Expected an array of objects." });
+        const { details, items } = req.body;
+
+        // Validate that `details` and `items` are present and correctly formatted
+        if (!details || !items || !Array.isArray(items)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid input format. Expected an object with 'details' and 'items'.",
+            });
         }
-        const Payment = dataArray.Payment
-        const Validity = dataArray.Validity
-        const cart_id = dataArray[0]?.cart_id;
-        for (const data of dataArray) {
+
+        const { Payment, Validity } = details;
+
+        if (!Payment || !Validity) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields in 'details' object.",
+            });
+        }
+
+        const cart_id = items[0]?.cart_id;
+
+        for (const data of items) {
             const { cart_id, order_id, rate, discount, delivery } = data;
 
             if (!cart_id || !order_id || rate == null || delivery == null) {
                 return res.status(400).json({
                     success: false,
-                    message: "Missing required fields in one of the objects",
+                    message: "Missing required fields in one of the items.",
                 });
             }
 
+            // Assuming `quotation` is a function that processes each item
             await quotation(rate, discount, order_id, cart_id, delivery);
         }
 
+        // Assuming `fetchAndCategorizeData` and `finalizeQuotation` are functions that process and finalize the response
         const response = await fetchAndCategorizeData(cart_id);
+        console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
         const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
 
-        res.status(200).json({ success: true, final_response });
+        res.status(200).json({ success: true});
     } catch (error) {
         console.error("Error in /quotation", error);
         res.status(500).json({
@@ -61,6 +78,7 @@ router.post("/quotation", async (req, res) => {
         });
     }
 });
+
 
 
 
