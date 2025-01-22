@@ -164,7 +164,6 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
-      ACL: 'public-read', // Or private based on your use case
     };
   
     try {
@@ -274,6 +273,14 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
       { align: "center", width: 500 }
     );
 
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const buffers = [];
+      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+      doc.end();
+    });
+
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
     const s3Key = `quotations/dowells_${cart_id}_quotation_${randomThreeDigit}.pdf`;
   
@@ -282,7 +289,6 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
-      ACL: 'public-read', // Or private based on your use case
     };
   
     try {
@@ -380,6 +386,14 @@ async function Rest3M(quotationDetails, payment, validity, cart_id) {
       { align: "center", width: 500 }
     );
 
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const buffers = [];
+      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+      doc.end();
+    });
+
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
     const s3Key = `quotations/rest3m_${cart_id}_quotation_${randomThreeDigit}.pdf`;
   
@@ -388,7 +402,6 @@ async function Rest3M(quotationDetails, payment, validity, cart_id) {
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
-      ACL: 'public-read', // Or private based on your use case
     };
   
     try {
