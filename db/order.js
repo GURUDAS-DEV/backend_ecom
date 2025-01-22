@@ -186,20 +186,20 @@ async function enquireMail(email, cart_id, subject) {
 async function quotation_mail(cart_id, urls, reply) {
   try {
     // Fetch the user_id from cart_details table
-    const cartDetails = await pool.query('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
-    if (cartDetails.rows.length === 0) {
+    const cartDetails = await executeQuery('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
+    if (!cartDetails) {
       throw new Error("Cart not found");
     }
     
-    const user_id = cartDetails.rows[0].user_id;
+    const user_id = cartDetails[0].user_id;
 
     // Get the user's email and name from user_profile table
-    const userProfile = await pool.query('SELECT email, name FROM user_profile WHERE id = $1', [user_id]);
-    if (userProfile.rows.length === 0) {
+    const userProfile = await executeQuery('SELECT email, name FROM user_details WHERE id = $1', [user_id]);
+    if (!userProfile) {
       throw new Error("User not found");
     }
 
-    const { email, name } = userProfile.rows[0];
+    const { email, name } = userProfile[0];
     
     // Download PDFs from URLs (Assuming you are using some utility like axios to download files)
     const attachments = await Promise.all(urls.map(async (url) => {
