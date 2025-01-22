@@ -1,15 +1,23 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const AWS = require('aws-sdk');
 
-async function heatshrinkpdf(quotationDetails, payment, validity) {
-  const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
+// Configure AWS SDK
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
+
+async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
+  /*const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
   if (!fs.existsSync(pdfsFolderPath)) {
     fs.mkdirSync(pdfsFolderPath);
   }
 
   const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
-
+*/
   const doc = new PDFDocument({ margin: 50 });
 
   // Add background color
@@ -141,20 +149,42 @@ async function heatshrinkpdf(quotationDetails, payment, validity) {
     .text('Validity:', 50, yPos + 60)
     .text(validity || '---', 120, yPos + 60); // Dynamic Validity
 
-  // Save PDF
-  doc.pipe(fs.createWriteStream(filePath));
-  doc.end();
-
-  console.log(` hs PDF generated at: ${filePath}`);
+    const pdfBuffer = await new Promise((resolve, reject) => {
+      const buffers = [];
+      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+      doc.end();
+    });
+    const randomThreeDigit = Math.floor(100 + Math.random() * 900);
+    const s3Key = `quotations/hs_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+  
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: s3Key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+      ACL: 'public-read', // Or private based on your use case
+    };
+  
+    try {
+      const s3Response = await s3.upload(uploadParams).promise();
+      console.log(`PDF uploaded successfully: ${s3Response.Location}`);
+      return s3Response.Location; // Return the URL or key of the uploaded PDF
+    } catch (error) {
+      console.error('Error uploading to S3:', error);
+      throw error;
+    }
 }
 
-async function dowellspdf(quotationDetails, payment) {
-  const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
+async function dowellspdf(quotationDetails, payment, cart_id) {
+  /*const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
   if (!fs.existsSync(pdfsFolderPath)) {
     fs.mkdirSync(pdfsFolderPath);
   }
 
   const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
+  */
   const doc = new PDFDocument({ margin: 50 });
 
   // Header Section
@@ -244,18 +274,34 @@ async function dowellspdf(quotationDetails, payment) {
       { align: "center", width: 500 }
     );
 
-  // Save PDF
-  doc.pipe(fs.createWriteStream(filePath));
-  doc.end();
-  console.log(` dowells PDF generated at: ${filePath}`);
+    const randomThreeDigit = Math.floor(100 + Math.random() * 900);
+    const s3Key = `quotations/dowells_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+  
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: s3Key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+      ACL: 'public-read', // Or private based on your use case
+    };
+  
+    try {
+      const s3Response = await s3.upload(uploadParams).promise();
+      console.log(`PDF uploaded successfully: ${s3Response.Location}`);
+      return s3Response.Location; // Return the URL or key of the uploaded PDF
+    } catch (error) {
+      console.error('Error uploading to S3:', error);
+      throw error;
+    }
 }
 
-async function Rest3M(quotationDetails, payment, validity) {
-  const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
+async function Rest3M(quotationDetails, payment, validity, cart_id) {
+ /* const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
   if (!fs.existsSync(pdfsFolderPath)) {
     fs.mkdirSync(pdfsFolderPath);
   }
   const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
+  */
   const doc = new PDFDocument({ margin: 50 });
 
   doc
@@ -334,9 +380,25 @@ async function Rest3M(quotationDetails, payment, validity) {
       { align: "center", width: 500 }
     );
 
-  doc.pipe(fs.createWriteStream(filePath));
-  doc.end();
-  console.log(` rest3m PDF generated at: ${filePath}`);
+    const randomThreeDigit = Math.floor(100 + Math.random() * 900);
+    const s3Key = `quotations/rest3m_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+  
+    const uploadParams = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: s3Key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+      ACL: 'public-read', // Or private based on your use case
+    };
+  
+    try {
+      const s3Response = await s3.upload(uploadParams).promise();
+      console.log(`PDF uploaded successfully: ${s3Response.Location}`);
+      return s3Response.Location; // Return the URL or key of the uploaded PDF
+    } catch (error) {
+      console.error('Error uploading to S3:', error);
+      throw error;
+    }
 }
 
 

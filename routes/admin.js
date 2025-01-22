@@ -5,16 +5,25 @@ const { enquiriesDb, updateStatus, quotation, fetchAndCategorizeData, finalizeQu
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 router.use(express.json());
 
-router.get("/getEnquiries", async(req,res)=>{
+router.get("/getEnquiries", async (req, res) => {
     try {
-        const response = await enquiriesDb()
-        if(response)
-        res.status(200).json({success: true, response})
+        // Fetch page and limit from query params (default to page 1, limit 15)
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+
+        // Fetch sorting options from query params
+        const { datesort, statussort } = req.query;
+
+        // Call the database function to get the enquiries with pagination and sorting
+        const response = await enquiriesDb(page, limit, datesort, statussort);
+
+        res.status(200).json({ success: true, response });
     } catch (error) {
-        console.error("error in /getEnquiries", error);
-        res.status(500).json({success: false, message:"An error occured while fetching enquiries"})
+        console.error("Error in /getEnquiries", error);
+        res.status(500).json({ success: false, message: "An error occurred while fetching enquiries" });
     }
-})
+});
+
 
 router.post("/statusUpdate", async(req,res)=>{
     try {
@@ -67,9 +76,9 @@ router.post("/quotation", async (req, res) => {
         // Assuming `fetchAndCategorizeData` and `finalizeQuotation` are functions that process and finalize the response
         const response = await fetchAndCategorizeData(cart_id);
         console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
-        const final_response = await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
+        const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
 
-        res.status(200).json({ success: true});
+        res.status(200).json({ success: true, hs_url: pdf_url.heatshrinkDetails, dow_url: pdf_url.dowellsDetails , r3m_url : pdf_url.m3Details});
     } catch (error) {
         console.error("Error in /quotation", error);
         res.status(500).json({

@@ -103,7 +103,6 @@ async function processOrderData(orderIds, email, status) {
       VALUES ($1, $2)
       RETURNING id`;
     const cartResult = await executeQuery(insertCartQuery, [userId, status]);
-    console.log(cartResult)
     if (!cartResult) {
       throw new Error("Failed to insert into cart_details");
     }
@@ -124,6 +123,7 @@ async function processOrderData(orderIds, email, status) {
         console.warn(`Order ID ${orderId} not found in order_details`);
       }
     }
+    return cartId
   } catch (error) {
     console.error("Error in processOrderData:", error);
     throw error;
@@ -163,17 +163,10 @@ async function deleteCartItem(order_id) {
 
 async function enquireMail(email, cart_id, subject) {
   try {
-    const query = `
-      SELECT sku, name, quantity 
-      FROM order_details 
-      WHERE cart_id = $1
-    `;
-    const values = [cart_id];
-    const result = await db.query(query, values); 
-    let message = `Order Details for Cart ID: ${cart_id}\n\n`;
-    result.rows.forEach((row, index) => {
-      message += `${index + 1}. SKU: ${row.sku}, Name: ${row.name}, Quantity: ${row.quantity}\n`;
-    });
+    const message = `Dear Customer,\n\n` +
+      `Thank you for your inquiry. We have received your request, and your Cart ID is: ${cart_id}.\n\n` +
+      `We will get back to you with a quotation shortly. In the meantime, please feel free to contact us if you have any further questions or need assistance.\n\n` +
+      `Thank you for choosing our services.\n\nBest regards,\nSheth Trading Corporation PVT. LTD.`;
 
     const mailOptions = {
       from: process.env.SMTP_MAIL,
@@ -190,4 +183,62 @@ async function enquireMail(email, cart_id, subject) {
   }
 }
 
-module.exports = { getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };
+async function quotation_mail(cart_id, urls, reply) {
+  try {
+    // Fetch the user_id from cart_details table
+    const cartDetails = await pool.query('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
+    if (cartDetails.rows.length === 0) {
+      throw new Error("Cart not found");
+    }
+    
+    const user_id = cartDetails.rows[0].user_id;
+
+    // Get the user's email and name from user_profile table
+    const userProfile = await pool.query('SELECT email, name FROM user_profile WHERE id = $1', [user_id]);
+    if (userProfile.rows.length === 0) {
+      throw new Error("User not found");
+    }
+
+    const { email, name } = userProfile.rows[0];
+    
+    // Download PDFs from URLs (Assuming you are using some utility like axios to download files)
+    const attachments = await Promise.all(urls.map(async (url) => {
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
+      return {
+        filename: `quotation_${url.split('/').pop()}`,  // Adjust naming as needed
+        content: response.data
+      };
+    }));
+
+    // Prepare the email content
+    const subject = "Here is your quotation";
+    const message = `Dear ${name},
+
+Here is the quotation for your enquiry with cart ID: ${cart_id}.
+
+    ${reply}
+
+Feel free to contact us for any questions or further assistance.
+
+Best regards,
+Your Company Name`;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.SMTP_MAIL,
+      to: email,
+      subject: subject,
+      text: message,
+      attachments: attachments  // Add the PDF attachments here
+    };
+
+    // Send email using the transporter
+    await transporter.sendMail(mailOptions);
+
+    return true;
+  } catch (error) {
+    console.error("Error sending quotation email:", error);
+    return false;
+  }
+}
+module.exports = { quotation_mail,getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };

@@ -73,8 +73,8 @@ router.post("/create", async (req, res) => {
     if (!email || !Array.isArray(orderIds)) {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
-    await processOrderData(orderIds, email, "New");
-    res.status(201).json({ success: true, message: "Data processed successfully" });
+    const response = await processOrderData(orderIds, email, "New");
+    res.status(201).json({ success: true, message: "Data processed successfully", cart_id : response.cartId });
   } catch (error) {
     console.error("Error in /create route:", error);
     res.status(500).json({ success: false, message: "An error occurred while processing the data" });

@@ -18,76 +18,105 @@ async function executeQuery(query, values = []) {
     }
   }
 
-  async function enquiriesDb() {
+  const enquiriesDb = async (page, limit, datesort, statussort) => {
     try {
-      const query = `
-        SELECT 
-          cd.id AS cart_id,
-          cd.status AS cart_status,
-          ud.name AS user_name,
-          ud.email AS user_email,
-          ud.phone AS user_phone,
-          od.id AS order_id,
-          od.sku,
-          od.cat_no,
-          od.quantity,
-          dp.price AS product_price
-        FROM cart_details cd
-        INNER JOIN user_details ud ON cd.user_id = ud.id
-        INNER JOIN order_details od ON od.cart_id = cd.id
-        LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no;
-      `;
-  
-      const rawData = await executeQuery(query);
-  
-      // Transform data into desired format
-      const groupedData = rawData.reduce((acc, row) => {
-        const {
-          cart_id,
-          cart_status,
-          user_name,
-          user_email,
-          user_phone,
-          order_id,
-          sku,
-          cat_no,
-          quantity,
-          product_price,
-        } = row;
-  
-        // Find if the cart already exists
-        let cart = acc.find((c) => c.cart_id === cart_id);
-  
-        if (!cart) {
-          // If not, create a new cart entry
-          cart = {
-            cart_id,
-            cart_status,
-            user_name,
-            user_email,
-            user_phone,
-            orders: [],
-          };
-          acc.push(cart);
-        }
+      // Calculate the offset for pagination
+      const offset = (page - 1) * limit;
 
-        cart.orders.push({
-          order_id,
-          sku,
-          cat_no,
-          quantity,
-          product_price,
-        });
-  
-        return acc;
+      // Construct the base query
+      let query = `
+          SELECT 
+              cd.id AS cart_id,
+              cd.status AS cart_status,
+              cd.last_update AS cart_last_update,
+              ud.name AS user_name,
+              ud.email AS user_email,
+              ud.phone AS user_phone,
+              od.id AS order_id,
+              od.sku,
+              od.cat_no,
+              od.quantity,
+              dp.price AS product_price
+          FROM cart_details cd
+          INNER JOIN user_details ud ON cd.user_id = ud.id
+          INNER JOIN order_details od ON od.cart_id = cd.id
+          LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no
+          WHERE cd.status != 'fulfilled'`;
+
+      // Apply sorting based on datesort or statussort
+      if (datesort === 'true') {
+          query += ` ORDER BY cd.last_update DESC`; // Sort by last_update descending (newest first)
+      } else if (statussort === 'true') {
+          query += ` ORDER BY 
+              CASE 
+                  WHEN cd.status = 'Opened' THEN 1  -- 'opened' should come first
+                  WHEN cd.status = 'New' THEN 2    -- 'new' comes after 'opened'
+                  ELSE 3                           -- Any other status comes last
+              END`; 
+      } else {
+        query += ` ORDER BY 
+              CASE 
+                  WHEN cd.status = 'New' THEN 1  -- 'opened' should come first
+                  WHEN cd.status = 'Opened' THEN 2    -- 'new' comes after 'opened'
+                  ELSE 3                           -- Any other status comes last
+              END`; 
+      }
+      
+
+      // Apply pagination (LIMIT and OFFSET)
+      query += ` LIMIT ${limit} OFFSET ${offset};`;
+
+      const rawData = await executeQuery(query);
+
+      // Transform data into the desired format
+      const groupedData = rawData.reduce((acc, row) => {
+          const {
+              cart_id,
+              cart_status,
+              user_name,
+              user_email,
+              user_phone,
+              order_id,
+              sku,
+              cat_no,
+              quantity,
+              product_price,
+          } = row;
+
+          // Find if the cart already exists
+          let cart = acc.find((c) => c.cart_id === cart_id);
+
+          if (!cart) {
+              // If not, create a new cart entry
+              cart = {
+                  cart_id,
+                  cart_status,
+                  user_name,
+                  user_email,
+                  user_phone,
+                  orders: [],
+              };
+              acc.push(cart);
+          }
+
+          cart.orders.push({
+              order_id,
+              sku,
+              cat_no,
+              quantity,
+              product_price,
+          });
+
+          return acc;
       }, []);
-  
+
       return groupedData;
-    } catch (error) {
+  } catch (error) {
       console.error("Error in enquiriesDb:", error);
       throw new Error("Error fetching enquiries data");
-    }
   }
+};
+
   
   async function updateStatus(status, cart_id) {
     try {
@@ -144,7 +173,7 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await heatshrinkpdf(quotationDetails, payment,validity);
+    const response = await heatshrinkpdf(quotationDetails, payment,validity, cart_id);
     return response;
   }
   
@@ -159,7 +188,7 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await dowellspdf(quotationDetails, payment);
+    const response = await dowellspdf(quotationDetails, payment, cart_id);
     return response;
   }
   
@@ -174,7 +203,7 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await Rest3M(quotationDetails, payment, validity);
+    const response = await Rest3M(quotationDetails, payment, validity, cart_id);
     return response;
   }
   
