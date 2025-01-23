@@ -74,6 +74,7 @@ router.post("/create", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
     const response = await processOrderData(orderIds, email, "New");
+    console.log(response.cartId)
     res.status(201).json({ success: true, message: "Data processed successfully", cart_id : response.cartId });
   } catch (error) {
     console.error("Error in /create route:", error);

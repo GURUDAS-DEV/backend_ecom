@@ -123,6 +123,7 @@ async function processOrderData(orderIds, email, status) {
         console.warn(`Order ID ${orderId} not found in order_details`);
       }
     }
+    console.log(cartId)
     return cartId
   } catch (error) {
     console.error("Error in processOrderData:", error);
