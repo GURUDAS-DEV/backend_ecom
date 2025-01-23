@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const { enquiriesDb, updateStatus, quotation, fetchAndCategorizeData, finalizeQuotation } = require("../db/admin");
+const { quotation_mail } = require("../db/order");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 router.use(express.json());
 
@@ -48,9 +49,9 @@ router.post("/quotation", async (req, res) => {
             });
         }
 
-        const { Payment, Validity } = details;
+        const { Payment, Validity, Reply } = details;
 
-        if (!Payment || !Validity) {
+        if (!Payment || !Validity || !Reply ) {
             return res.status(400).json({
                 success: false,
                 message: "Missing required fields in 'details' object.",
@@ -77,8 +78,14 @@ router.post("/quotation", async (req, res) => {
         const response = await fetchAndCategorizeData(cart_id);
         console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
         const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
-
-        res.status(200).json({ success: true, hs_url: pdf_url.heatshrinkDetails, dow_url: pdf_url.dowellsDetails , r3m_url : pdf_url.m3Details});
+        const urls = [];
+  
+        // Check if the URLs are non-null and add to the array
+        if (pdf_url.heatshrinkDetails) urls.push(pdf_url.heatshrinkDetails);
+        if (pdf_url.dowellsDetails) urls.push(pdf_url.dowellsDetails);
+        if (pdf_url.m3Details) urls.push(pdf_url.m3Details);
+        await quotation_mail(cart_id, urls , Reply )
+        res.status(200).json({ success: true, message: "quotation sent successfully"});
     } catch (error) {
         console.error("Error in /quotation", error);
         res.status(500).json({

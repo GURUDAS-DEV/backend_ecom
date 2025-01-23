@@ -39,29 +39,5 @@ router.post("/enquiryMail", async (req, res) => {
       });
     }
   }); 
-
-  router.post("/quotationMail", async (req, res) => {
-    try {
-      const { cart_id, heatshrink, dowells, r3m ,reply} = req.body;
-      const urls = [];
   
-      // Check if the URLs are non-null and add to the array
-      if (heatshrink) urls.push(heatshrink);
-      if (dowells) urls.push(dowells);
-      if (r3m) urls.push(r3m);
-  
-      // Call the async function to process and send the email
-      const success = await quotation_mail(cart_id, urls, reply);
-      if (success) {
-        res.status(200).json({ message: "Quotation email sent successfully" });
-      } else {
-        res.status(500).json({ message: "Failed to send quotation email" });
-      }
-    } catch (error) {
-      console.error("Error in /quotationMail route:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-  
-
 module.exports = router
