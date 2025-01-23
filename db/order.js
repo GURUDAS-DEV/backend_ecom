@@ -124,7 +124,7 @@ async function processOrderData(orderIds, email, status) {
       }
     }
     console.log(cartId)
-    return cartId
+    return {cartId}
   } catch (error) {
     console.error("Error in processOrderData:", error);
     throw error;
