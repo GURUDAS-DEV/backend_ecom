@@ -163,10 +163,26 @@ async function deleteCartItem(order_id) {
 
 async function enquireMail(email, cart_id, subject) {
   try {
-    const message = `Dear Customer,\n\n` +
-      `Thank you for your inquiry. We have received your request, and your Cart ID is: ${cart_id}.\n\n` +
-      `We will get back to you with a quotation shortly. In the meantime, please feel free to contact us if you have any further questions or need assistance.\n\n` +
-      `Thank you for choosing our services.\n\nBest regards,\nSheth Trading Corporation PVT. LTD.`;
+    const query = `
+      SELECT name, quantity, sku, cat_no
+      FROM order_details 
+      WHERE cart_id = $1
+    `;
+    const values = [cart_id];
+    const result = await executeQuery(query, values); // Assuming result is an array
+
+    let message = `Dear Customer,\n\n`;
+    message += `Thank you for your inquiry. We have received your request and here are the details associated with your cart ID: ${cart_id}.\n\n`;
+    message += `Order Details:\n`;
+
+    // Iterate directly over result if it's an array
+    result.forEach((row, index) => {
+      const identifier = row.sku ? `SKU: ${row.sku}` : `Cat No: ${row.cat_no}`;
+      message += `${index + 1}. Name: ${row.name}, Quantity: ${row.quantity}, ${identifier}\n`;
+    });
+
+    message += `\nWe will get back to you with a quotation shortly. In the meantime, please feel free to contact us if you have any further questions or need assistance.\n\n`;
+    message += `Thank you for choosing our services.\n\nBest regards,\n[Your Company Name]`;
 
     const mailOptions = {
       from: process.env.SMTP_MAIL,
@@ -182,6 +198,7 @@ async function enquireMail(email, cart_id, subject) {
     throw new Error("Error sending email notification");
   }
 }
+
 
 async function quotation_mail(cart_id, urls, reply) {
   try {
