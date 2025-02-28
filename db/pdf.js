@@ -177,15 +177,8 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
 }
 
 async function dowellspdf(quotationDetails, payment, cart_id) {
-  /*const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
-  if (!fs.existsSync(pdfsFolderPath)) {
-    fs.mkdirSync(pdfsFolderPath);
-  }
-
-  const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
-  */
   const doc = new PDFDocument({ margin: 50 });
-
+  
   // Header Section
   doc
     .image("logo.png", 50, 45, { width: 50 })
@@ -203,42 +196,43 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
     .text("IFSC: HDFC0001242", 400, 120, { align: "right" });
 
   // Table Header
-  const tableTop = 200;
-  const itemSpacing = 20;
+  const tableTop = 180;
+  const columnWidths = [40, 160, 80, 80, 60, 50, 70, 70, 70];
+  const startX = 50;
 
-  doc.fontSize(12)
-    .text("Sl", 50, tableTop, { bold: true })
-    .text("Description", 70, tableTop, { bold: true })
-    .text("Cable OD (mm)", 220, tableTop, { bold: true })
-    .text("Cat. No.", 300, tableTop, { bold: true })
-    .text("HSN", 380, tableTop, { bold: true })
-    .text("Qty.", 440, tableTop, { bold: true })
-    .text("Rate ₹", 500, tableTop, { bold: true })
-    .text("Discount", 560, tableTop, { bold: true })
-    .text("Amount ₹", 620, tableTop, { bold: true })
-    .text("Delivery", 700, tableTop, { bold: true });
+  const drawRow = (y, rowData, isHeader = false) => {
+    doc.fontSize(10).font(isHeader ? "Helvetica-Bold" : "Helvetica");
 
-  doc.moveTo(50, tableTop + 15).lineTo(850, tableTop + 15).stroke();
+    let x = startX;
+    rowData.forEach((text, i) => {
+      doc.text(text, x, y, { width: columnWidths[i], align: "center" });
+      x += columnWidths[i];
+    });
 
-  // Table Rows
-  let yPos = tableTop + itemSpacing;
+    doc.moveTo(startX, y + 15).lineTo(startX + columnWidths.reduce((a, b) => a + b), y + 15).stroke();
+  };
 
+  // Draw table header
+  drawRow(tableTop, ["Sl", "Description", "Cable OD (mm)", "Cat. No.", "HSN", "Qty.", "Rate ₹", "Discount", "Amount ₹"], true);
+
+  let yPos = tableTop + 20;
+
+  // Draw table rows
   quotationDetails.items.forEach((item, index) => {
     const discountedAmount = item.rate * item.quantity * (1 - (item.discount || 0) / 100);
+    drawRow(yPos, [
+      index + 1,
+      item.description,
+      item.cableOd,
+      item.catNo,
+      item.hsn,
+      item.quantity,
+      `₹${item.rate.toFixed(2)}`,
+      `${item.discount || 0}%`,
+      `₹${discountedAmount.toFixed(2)}`
+    ]);
 
-    doc.fontSize(10)
-      .text(index + 1, 50, yPos)
-      .text(item.description, 70, yPos)
-      .text(item.cableOd, 220, yPos)
-      .text(item.catNo, 300, yPos)
-      .text(item.hsn, 380, yPos)
-      .text(item.quantity, 440, yPos)
-      .text(`₹${item.rate}`, 500, yPos)
-      .text(`${item.discount || 0}%`, 560, yPos)
-      .text(`₹${discountedAmount}`, 620, yPos)
-      .text(item.delivery, 700, yPos);
-
-    yPos += itemSpacing;
+    yPos += 20;
   });
 
   // Summary Section
@@ -249,17 +243,17 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
 
   doc
     .fontSize(12)
-    .text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 620, yPos + 10, { bold: true });
+    .text(`Total Amount: ₹${totalAmount.toFixed(2)}`, startX + 500, yPos + 10, { bold: true });
 
   yPos += 40;
 
   // Payment and Validity Section
   doc
     .fontSize(10)
-    .text("Payment:", 50, yPos)
-    .text(payment || "N/A", 120, yPos)
-    .text("Validity:", 300, yPos)
-    .text("7 days validity" || "N/A", 360, yPos);
+    .text("Payment:", startX, yPos)
+    .text(payment || "N/A", startX + 70, yPos)
+    .text("Validity:", startX + 250, yPos)
+    .text("7 days validity" || "N/A", startX + 300, yPos);
 
   yPos += 40;
 
@@ -268,38 +262,39 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
     .fontSize(10)
     .text(
       "Thank you for your business! If you have any questions about this quotation, please contact us.",
-      50,
+      startX,
       700,
       { align: "center", width: 500 }
     );
 
-    const pdfBuffer = await new Promise((resolve, reject) => {
-      const buffers = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', reject);
-      doc.end();
-    });
+  const pdfBuffer = await new Promise((resolve, reject) => {
+    const buffers = [];
+    doc.on("data", (chunk) => buffers.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", reject);
+    doc.end();
+  });
 
-    const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/dowells_${cart_id}_quotation_${randomThreeDigit}.pdf`;
-  
-    const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: s3Key,
-      Body: pdfBuffer,
-      ContentType: 'application/pdf',
-    };
-  
-    try {
-      const s3Response = await s3.upload(uploadParams).promise();
-      console.log(`PDF uploaded successfully: ${s3Response.Location}`);
-      return s3Response.Location; // Return the URL or key of the uploaded PDF
-    } catch (error) {
-      console.error('Error uploading to S3:', error);
-      throw error;
-    }
+  const randomThreeDigit = Math.floor(100 + Math.random() * 900);
+  const s3Key = `quotations/dowells_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+
+  const uploadParams = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: s3Key,
+    Body: pdfBuffer,
+    ContentType: "application/pdf",
+  };
+
+  try {
+    const s3Response = await s3.upload(uploadParams).promise();
+    console.log(`PDF uploaded successfully: ${s3Response.Location}`);
+    return s3Response.Location; // Return the URL or key of the uploaded PDF
+  } catch (error) {
+    console.error("Error uploading to S3:", error);
+    throw error;
+  }
 }
+
 
 async function Rest3M(quotationDetails, payment, validity, cart_id) {
  /* const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists

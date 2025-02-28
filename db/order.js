@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer"); 
+const axios = require("axios")
 const path = require("path");
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
@@ -63,7 +64,8 @@ async function findUserByEmail(email) {
 
   const query = "SELECT id FROM user_details WHERE LOWER(email) = LOWER($1)";
   const result = await executeQuery(query, [email.trim()]);
-  if (!result ) {
+  console.log(result)
+  if (!result || result.length == 0) {
     return null; // Return null if user is not found
   }
   return result[0].id; // Return userId if found
@@ -174,12 +176,16 @@ async function enquireMail(email, cart_id, subject) {
 
     let message = `Dear Customer,\n\n`;
     message += `Thank you for your inquiry. We have received your request and here are the details associated with your cart ID: ${cart_id}.\n\n`;
-    message += `Order Details:\n`;
-
-    // Iterate directly over result if it's an array
+    message += `Order Details:\n\n`;
+    
+    // Table Header
+    message += `| No  | Name                                                      | Quantity | SKU / Cat No          |\n`;
+    message += `|-----|-----------------------------------------------------------|----------|-----------------------|\n`;
+    
+    // Iterate over result and format table rows
     result.forEach((row, index) => {
-      const identifier = row.sku ? `SKU: ${row.sku}` : `Cat No: ${row.cat_no}`;
-      message += `${index + 1}. Name: ${row.name}, Quantity: ${row.quantity}, ${identifier}\n`;
+      const identifier = row.sku ? row.sku : row.cat_no;
+      message += `| ${String(index + 1).padEnd(3)} | ${row.name.padEnd(57)} | ${String(row.quantity).padEnd(8)} | ${identifier.padEnd(21)} |\n`;
     });
 
     message += `\nWe will get back to you with a quotation shortly. In the meantime, please feel free to contact us if you have any further questions or need assistance.\n\n`;
@@ -199,7 +205,6 @@ async function enquireMail(email, cart_id, subject) {
     throw new Error("Error sending email notification");
   }
 }
-
 
 async function quotation_mail(cart_id, urls, reply) {
   try {

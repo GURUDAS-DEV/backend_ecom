@@ -10,20 +10,21 @@ const client = new Client({
 client.connect()
   .then(() => {
     console.log('Connected to the database');
-    // Execute the SQL statement to modify the column
+    // Execute the SQL query
     return client.query(`
-      ALTER TABLE quotation
-      ADD COLUMN delivery VARCHAR(255);
-
-     `);
+      SELECT price, delivery
+      FROM quotation 
+      WHERE id = 81 AND cart_id = 34
+    `);
   })
-  .then(() => {
-    console.log('Column modified successfully');
+  .then((result) => {
+    // Log the query result
+    console.log('Query Result:', result.rows);
     // Close the connection
     return client.end();
   })
   .catch((err) => {
-    console.error('Error modifying column:', err);
+    console.error('Error executing query:', err);
     // Close the connection in case of an error
     client.end();
   });

@@ -167,6 +167,7 @@ async function executeQuery(query, values = []) {
       items: [],
       validity,
     };
+    console.log("array of hss",heatshrink)
     for (const sku of heatshrink) {
       const item = await fetchhsItemDetails(cart_id, sku);
       if (item) {
@@ -216,18 +217,19 @@ async function executeQuery(query, values = []) {
       `;
       const orderDetailsResult = await executeQuery(orderDetailsQuery, [cart_id, sku]);
       const orderDetails = orderDetailsResult[0];
-  
+      
       if (!orderDetails || !orderDetails.quantity) {
         console.error(`Missing required fields for cart_id: ${cart_id} and sku: ${sku}`);
         return null;
       }
-  
+      console.log("orderdeatils", orderDetails)
       const quotationQuery = `
         SELECT price, delivery
         FROM quotation 
-        WHERE id = $1 AND cart_id = $2
+        WHERE order_id = $1 AND cart_id = $2
       `;
       const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
+      console.log("quotationresult", quotationResult,orderDetails.id, cart_id)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
   
@@ -258,7 +260,8 @@ async function executeQuery(query, values = []) {
         FROM dowells_pricelist 
         WHERE cat_no = $1 
       `;
-      const dowellsDetailsResult = await executeQuery(dowellsDetailsQuery, [cat_no]);
+      const dowellsDetailsResult = await executeQuery(dowellsDetailsQuery, [cat_no]); 
+      console.log("dowellsreuslt",dowellsDetailsResult)
       const dowellsDetails = dowellsDetailsResult[0];
   
       if (!dowellsDetails) {
@@ -272,8 +275,9 @@ async function executeQuery(query, values = []) {
         WHERE cart_id = $1 AND cat_no = $2
       `;
       const orderDetailsResult = await executeQuery(orderDetailsQuery, [cart_id, cat_no]);
+      console.log("dowellsorderreuslt",orderDetailsResult)
       const orderDetails = orderDetailsResult[0];
-  
+      
       if (!orderDetails || !orderDetails.quantity) {
         console.error(`Missing required fields for cart_id: ${cart_id} and sku: ${sku}`);
         return null;
@@ -282,9 +286,10 @@ async function executeQuery(query, values = []) {
       const quotationQuery = `
         SELECT price,discount, delivery
         FROM quotation 
-        WHERE id = $1 AND cart_id = $2
+        WHERE order_id = $1 AND cart_id = $2
       `;
       const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
+      console.log("quotationresult",quotationResult)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
       const discount = quotationResult[0].discount;
@@ -325,7 +330,7 @@ async function executeQuery(query, values = []) {
       const quotationQuery = `
         SELECT price, delivery
         FROM quotation 
-        WHERE id = $1 AND cart_id = $2
+        WHERE order_id = $1 AND cart_id = $2
       `;
       const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
       const price = quotationResult[0].price;
@@ -379,9 +384,6 @@ async function executeQuery(query, values = []) {
             dowells.push(cat_no);
         }
     });
-    
-      
-      
       return { heatshrink, m3, dowells };
     } catch (error) {
       console.error("Error fetching and categorizing data:", error);
@@ -398,7 +400,6 @@ async function executeQuery(query, values = []) {
         RETURNING *;
       `;
        await executeQuery(query, [price, discount, cart_id, order_id, delivery]);
-      
     } catch (error) {
       console.error("Error inserting quotation:", error);
       throw new Error("Error inserting quotation");

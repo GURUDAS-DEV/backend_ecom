@@ -8,14 +8,11 @@ router.use(express.json());
 
 router.get("/getEnquiries", async (req, res) => {
     try {
-        // Fetch page and limit from query params (default to page 1, limit 15)
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 15;
 
-        // Fetch sorting options from query params
         const { datesort, statussort } = req.query;
 
-        // Call the database function to get the enquiries with pagination and sorting
         const response = await enquiriesDb(page, limit, datesort, statussort);
 
         res.status(200).json({ success: true, response });
@@ -24,7 +21,6 @@ router.get("/getEnquiries", async (req, res) => {
         res.status(500).json({ success: false, message: "An error occurred while fetching enquiries" });
     }
 });
-
 
 router.post("/statusUpdate", async(req,res)=>{
     try {
@@ -41,7 +37,6 @@ router.post("/quotation", async (req, res) => {
     try {
         const { details, items } = req.body;
 
-        // Validate that `details` and `items` are present and correctly formatted
         if (!details || !items || !Array.isArray(items)) {
             return res.status(400).json({
                 success: false,
@@ -70,17 +65,14 @@ router.post("/quotation", async (req, res) => {
                 });
             }
 
-            // Assuming `quotation` is a function that processes each item
             await quotation(rate, discount, order_id, cart_id, delivery);
         }
 
-        // Assuming `fetchAndCategorizeData` and `finalizeQuotation` are functions that process and finalize the response
         const response = await fetchAndCategorizeData(cart_id);
         console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
         const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
         const urls = [];
   
-        // Check if the URLs are non-null and add to the array
         if (pdf_url.heatshrinkDetails) urls.push(pdf_url.heatshrinkDetails);
         if (pdf_url.dowellsDetails) urls.push(pdf_url.dowellsDetails);
         if (pdf_url.m3Details) urls.push(pdf_url.m3Details);
@@ -95,8 +87,5 @@ router.post("/quotation", async (req, res) => {
         });
     }
 });
-
-
-
 
 module.exports = router;
