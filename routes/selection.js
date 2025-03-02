@@ -11,7 +11,9 @@ const {
   updateCart, 
   deleteCartItem, 
   findUserByEmail,
-  getALLCartDetails
+  getALLCartDetails,
+  insertSubscription, 
+  insertUserMessage
 } = require("../db/order"); 
 
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
@@ -147,4 +149,32 @@ router.delete("/itemDelete", async (req, res) => {
   }
 });
 
+
+router.post("/mailSub", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const newSubscription = await insertSubscription(email);
+    res.status(201).json({ success: true, data: newSubscription });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/userForm", async (req, res) => {
+  try {
+    const { name, email, phone, subject, body } = req.body;
+    if (!name || !email || !body) {
+      return res.status(400).json({ error: "Name, email, and body are required" });
+    }
+
+    const newMessage = await insertUserMessage(name, email, phone, subject, body);
+    res.status(201).json({ success: true, data: newMessage });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 module.exports = router;

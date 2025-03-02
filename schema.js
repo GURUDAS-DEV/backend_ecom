@@ -12,9 +12,20 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-      SELECT price, delivery
-      FROM quotation 
-      WHERE id = 81 AND cart_id = 34
+     CREATE TABLE message (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    subject VARCHAR(255),
+    body TEXT
+);
+
+CREATE TABLE sub (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
     `);
   })
   .then((result) => {

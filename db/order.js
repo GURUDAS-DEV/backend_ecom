@@ -264,4 +264,18 @@ Your Company Name`;
     return false;
   }
 }
-module.exports = { quotation_mail,getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };
+
+const insertSubscription = async (email) => {
+  const query = "INSERT INTO sub (email) VALUES ($1) RETURNING *";
+  return await executeQuery(query, [email]);
+};
+
+// Function to insert user form data into the 'message' table
+const insertUserMessage = async (name, email, phone, subject, body) => {
+  const query = `
+    INSERT INTO message (name, email, phone, subject, body)
+    VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+  return await executeQuery(query, [name, email, phone, subject, body]);
+};
+
+module.exports = { insertSubscription, insertUserMessage, quotation_mail,getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };
