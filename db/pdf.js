@@ -21,10 +21,10 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
   const doc = new PDFDocument({ margin: 50 });
 
   // Add background color
-  doc.rect(0, 0, doc.page.width, doc.page.height).fill('#F4F4F4');
+  doc.rect(0, 0, doc.page.width, doc.page.height)
 
   // Header Section
-  doc.rect(0, 0, doc.page.width, 250).fill('#B38E00');
+  doc.rect(0, 0, doc.page.width, 250);
   doc.image('logo.png', 50, 60, { width: 50 });
 
   doc
@@ -180,20 +180,39 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
   const doc = new PDFDocument({ margin: 50 });
   
   // Header Section
+  doc.rect(0, 0, doc.page.width, doc.page.height);
+
+  // Header Section
+  doc.rect(0, 0, doc.page.width, 250);
+  doc.image('logo.png', 50, 60, { width: 50 });
+
   doc
-    .image("logo.png", 50, 45, { width: 50 })
-    .fontSize(20)
-    .text("Sheth Trading Corporation", 110, 57)
+    .fillColor('black')
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text('SHETH TRADING CORPORATION', 110, 60, { align: 'left' })
+    .moveDown(0.5)
+    .font('Helvetica')
     .fontSize(10)
-    .text("22, RABINDRA SARANI, SHOP NO. 322, GR. FLOOR,", 200, 65, { align: "left" })
-    .text("Kolkata, West Bengal, 700073", 200, 80, { align: "left" })
-    .text("Phone: 40240300/22379239", 200, 95, { align: "left" })
-    .text("Email: enquiry@shethtrading.com", 200, 110, { align: "left" })
-    .text("Bank Details", 400, 60, { align: "right" })
-    .text("Bank Name: HDFC BANK LTD", 400, 75, { align: "right" })
-    .text("Branch: India Exchange Place", 400, 90, { align: "right" })
-    .text("A/c No.: 12422320004133", 400, 105, { align: "right" })
-    .text("IFSC: HDFC0001242", 400, 120, { align: "right" });
+    .text('22, RABINDRA SARANI, SHOP NO. 322, GR. FLOOR,', 110)
+    .text('KOLKATA-700073')
+    .text('GSTIN: 19AALFS8359M1Z5')
+    .text('MSME UDYAM REG NO.: WB-10-0039292')
+    .text('CONTACT: 40240300/22379239')
+    .text('E-MAIL: shethtrd@gmail.com');
+
+  const rightStart = 400;
+  doc
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text('BANK DETAIL', rightStart, 60, { align: 'left' })
+    .moveDown(0.5)
+    .font('Helvetica')
+    .fontSize(10)
+    .text('Bank Name: HDFC Bank Ltd.', rightStart)
+    .text('Branch: India Exchange Place', rightStart)
+    .text('A/c No.: 12422320004133', rightStart)
+    .text('IFSC: HDFC0001242', rightStart);
 
   // Table Header
   const tableTop = 180;
@@ -227,9 +246,9 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
       item.catNo,
       item.hsn,
       item.quantity,
-      `₹${item.rate.toFixed(2)}`,
+      `₹${item.rate}`,
       `${item.discount || 0}%`,
-      `₹${discountedAmount.toFixed(2)}`
+      `₹${discountedAmount}`
     ]);
 
     yPos += 20;
@@ -295,118 +314,94 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
   }
 }
 
-
 async function Rest3M(quotationDetails, payment, validity, cart_id) {
- /* const pdfsFolderPath = path.join(__dirname, 'pdfs'); // Ensure the folder exists
-  if (!fs.existsSync(pdfsFolderPath)) {
-    fs.mkdirSync(pdfsFolderPath);
-  }
-  const filePath = path.join(pdfsFolderPath, `quotation_${Date.now()}.pdf`);
-  */
   const doc = new PDFDocument({ margin: 50 });
+  const pdfBuffer = await new Promise((resolve, reject) => {
+    const buffers = [];
+    doc.on('data', (chunk) => buffers.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(buffers)));
+    doc.on('error', reject);
 
-  doc
-    .image("logo.png", 50, 45, { width: 50 }) 
-    .fontSize(20)
-    .text("Sheth Trading Corporation", 110, 57)
-    .fontSize(10)
-    .text("22, RABINDRA SARANI, SHOP NO. 322, GR. FLOOR,", 200, 65, { align: "left" })
-    .text("Kolkata, West Bengal, 700073", 200, 80, { align: "left" })
-    .text("Phone: 40240300/22379239", 200, 95, { align: "left" })
-    .text("Email: enquiry@shethtrading.com", 200, 110, { align: "left" })
-    .text("Bank Details", 200, 80, { align: "right" })
-    .text("Bank Name: HDFC BANK LTD", 200, 80, { align: "right" })
-    .text("Branch:  India Exchange Place", 200, 80, { align: "right" })
-    .text("A/c No. : 12422320004133", 200, 80, { align: "right" })
-    .text("IFSC :  HDFC0001242", 200, 80, { align: "right" })
-    .moveDown();
+    // Header Section
+    doc.rect(0, 0, doc.page.width, 120).fill('#f0f0f0');
+    doc.image('logo.png', 70, 30, { width: 50 });
+    doc.fillColor('black').fontSize(14).font('Helvetica-Bold')
+      .text('SHETH TRADING CORPORATION', 130, 30)
+      .font('Helvetica').fontSize(10)
+      .text('22, RABINDRA SARANI, SHOP NO. 322, GR. FLOOR, KOLKATA-700073', 130, 50)
+      .text('GSTIN: 19AALFS8359M1Z5', 130, 65)
+      .text('MSME UDYAM REG NO.: WB-10-0039292', 130, 80)
+      .text('CONTACT: 40240300/22379239', 130, 95)
+      .text('E-MAIL: shethtrd@gmail.com', 130, 110);
+    
+    // Bank Details
+    const rightStart = 450;
+    doc.fontSize(12).font('Helvetica-Bold')
+      .text('BANK DETAILS', rightStart, 30)
+      .font('Helvetica').fontSize(10)
+      .text('Bank Name: HDFC Bank Ltd.', rightStart, 50)
+      .text('Branch: India Exchange Place', rightStart, 65)
+      .text('A/c No.: 12422320004133', rightStart, 80)
+      .text('IFSC: HDFC0001242', rightStart, 95);
+    
+    // Table Header
+    const tableTop = 150;
+    const columnWidths = [30, 200, 70, 50, 80, 80, 100];
+    const xStart = 40;
+    const yIncrement = 25;
 
-  const tableTop = 200;
-  const itemSpacing = 20;
+    doc.moveTo(xStart, tableTop).lineTo(550, tableTop).stroke();
+    doc.font('Helvetica-Bold').fontSize(10)
+      .text('Sl', xStart, tableTop + 5, { width: columnWidths[0], align: 'center' })
+      .text('Description', xStart + columnWidths[0], tableTop + 5, { width: columnWidths[1] })
+      .text('HSN', xStart + columnWidths[0] + columnWidths[1] - 10, tableTop + 5, { width: columnWidths[2], align: 'center' })
+      .text('Qty.', xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] - 10, tableTop + 5, { width: columnWidths[3], align: 'center' })
+      .text('Rate ₹', xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] - 10, tableTop + 5, { width: columnWidths[4], align: 'right' })
+      .text('Sum ₹', xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4] - 10, tableTop + 5, { width: columnWidths[5], align: 'right' })
+      .text('Delivery', xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4] + columnWidths[5] - 10, tableTop + 5, { width: columnWidths[6], align: 'center' });
+    doc.moveTo(xStart, tableTop + 20).lineTo(550, tableTop + 20).stroke();
 
-  doc.fontSize(12)
-    .text("Sl", 50, tableTop, { bold: true })
-    .text("Description", 70, tableTop, { bold: true })
-    .text("HSN", 300, tableTop, { bold: true })
-    .text("Qty.", 380, tableTop, { bold: true })
-    .text("Rate ₹", 440, tableTop, { bold: true })
-    .text("Sum ₹", 500, tableTop, { bold: true })
-    .text("Delivery", 620, tableTop, { bold: true });
+    let yPos = tableTop + yIncrement;
+    doc.font('Helvetica').fontSize(10);
 
-  doc.moveTo(50, tableTop + 15).lineTo(850, tableTop + 15).stroke(); 
-
-  let yPos = tableTop + itemSpacing;
-
-  quotationDetails.items.forEach((item, index) => {
-    const sum = item.rate * item.quantity;
-
-    doc.fontSize(10)
-      .text(index + 1, 50, yPos) 
-      .text(item.description, 70, yPos) 
-      .text("85469090", 300, yPos) 
-      .text(item.quantity, 380, yPos) 
-      .text(`₹${item.rate}`, 440, yPos) 
-      .text(`₹${sum}`, 500, yPos) 
-      .text(item.delivery, 620, yPos); 
-
-    yPos += itemSpacing;
-  });
-
-  const totalAmount = quotationDetails.items.reduce(
-    (sum, item) => sum + item.rate * item.quantity,
-    0
-  );
-  doc
-    .fontSize(12)
-    .text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 500, yPos + 10, { bold: true });
-
-  // Payment and Validity Section
-  doc
-    .fontSize(10)
-    .text("Payment:", 50, yPos)
-    .text(payment || "N/A", 120, yPos)
-    .text("Validity:", 300, yPos)
-    .text(validity || "N/A", 360, yPos);
-
-  yPos += 40;
-
-  // Footer Section
-
-  doc
-    .fontSize(10)
-    .text(
-      "Thank you for your business! If you have any questions about this quotation, please contact us.",
-      50,
-      700,
-      { align: "center", width: 500 }
-    );
-
-    const pdfBuffer = await new Promise((resolve, reject) => {
-      const buffers = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', reject);
-      doc.end();
+    quotationDetails.items.forEach((item, index) => {
+      const sum = item.rate * item.quantity;
+      doc.text(index + 1, xStart, yPos, { width: columnWidths[0], align: 'center' })
+        .text(item.description, xStart + columnWidths[0], yPos, { width: columnWidths[1] })
+        .text('85469090', xStart + columnWidths[0] + columnWidths[1] - 10, yPos, { width: columnWidths[2], align: 'center' })
+        .text(item.quantity, xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] - 10, yPos, { width: columnWidths[3], align: 'center' })
+        .text(`₹${item.rate}`, xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] - 10, yPos, { width: columnWidths[4], align: 'right' })
+        .text(`₹${sum}`, xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4] - 10, yPos, { width: columnWidths[5], align: 'right' })
+        .text(item.delivery, xStart + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4] + columnWidths[5] - 10, yPos, { width: columnWidths[6], align: 'center' });
+      yPos += yIncrement;
     });
 
-    const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/rest3m_${cart_id}_quotation_${randomThreeDigit}.pdf`;
-  
-    const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: s3Key,
-      Body: pdfBuffer,
-      ContentType: 'application/pdf',
-    };
-  
-    try {
-      const s3Response = await s3.upload(uploadParams).promise();
-      console.log(`PDF uploaded successfully: ${s3Response.Location}`);
-      return s3Response.Location; // Return the URL or key of the uploaded PDF
-    } catch (error) {
-      console.error('Error uploading to S3:', error);
-      throw error;
-    }
+    const totalAmount = quotationDetails.items.reduce((sum, item) => sum + item.rate * item.quantity, 0);
+    doc.fontSize(12).font('Helvetica-Bold').text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 50, yPos + 40);
+
+    doc.fontSize(10).text(`Payment: ${payment || 'N/A'}`, 50, yPos + 40).text(`Validity: ${validity || 'N/A'}`, 300, yPos + 40);
+
+    doc.text("Thank you for your business!", 50, 700, { align: 'center', width: 500 });
+    doc.end();
+  });
+
+  const randomThreeDigit = Math.floor(100 + Math.random() * 900);
+  const s3Key = `quotations/rest3m_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+  const uploadParams = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: s3Key,
+    Body: pdfBuffer,
+    ContentType: 'application/pdf',
+  };
+
+  try {
+    const s3Response = await s3.upload(uploadParams).promise();
+    console.log(`PDF uploaded successfully: ${s3Response.Location}`);
+    return s3Response.Location;
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw error;
+  }
 }
 
 
