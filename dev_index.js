@@ -13,7 +13,7 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     credentials: true,
-    origin: "https://shethtrading.com",
+    origin: "http://localhost:3000",
   })
 );
 
@@ -26,5 +26,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(8282, () => {
-  console.log("prod server started in port 8282");
+  console.log("dev server started in port 8282");
 });
