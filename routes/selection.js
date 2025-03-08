@@ -11,6 +11,7 @@ const {
   updateCart, 
   deleteCartItem, 
   findUserByEmail,
+  getContacts,
   getALLCartDetails,
   insertSubscription, 
   insertUserMessage
@@ -52,12 +53,14 @@ router.post("/user", async (req, res) => {
   try {
     const parsedBody = userSchema.parse(req.body);
     const { name, email, phone } = parsedBody;
+    /*
     console.log(email)
     const existingUser = await findUserByEmail(email);
     console.log(existingUser)
     if (existingUser) {
       return res.status(200).json({ success: true, userId: existingUser });
     }
+      */
     const id = await userDb(name, email, phone);
     res.status(201).json({ success: true, userId: id });
   } catch (error) {
@@ -177,4 +180,16 @@ router.post("/userForm", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+router.get("/getContact", async (req, res) => {
+  try {
+    const result = await getContacts();
+    res.status(200).json({ success: true, result });
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+
 module.exports = router;

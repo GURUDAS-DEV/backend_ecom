@@ -143,6 +143,11 @@ async function getALLCartDetails(cartId) {
   return await executeQuery(query, [cartId]);
 }
 
+async function getContacts() {
+  const query = 'SELECT * FROM message';
+  return await executeQuery(query);
+}
+
 async function updateCart(quantity, order_id) {
   const query = 'UPDATE order_details SET quantity = $1 WHERE order_id = $2 RETURNING *';
   const result = await executeQuery(query, [ quantity, order_id]);
@@ -278,4 +283,4 @@ const insertUserMessage = async (name, email, phone, subject, body) => {
   return await executeQuery(query, [name, email, phone, subject, body]);
 };
 
-module.exports = { insertSubscription, insertUserMessage, quotation_mail,getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };
+module.exports = { getContacts, insertSubscription, insertUserMessage, quotation_mail,getALLCartDetails, storeDataInDb, userDb,findUserByEmail, processOrderData, getCartDetails, updateCart, deleteCartItem, enquireMail };
