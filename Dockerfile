@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8282
 
 # Define the command to run the application
-CMD ["node", "dev_index.js"]
+CMD ["node", "index.js"]
