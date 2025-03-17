@@ -167,12 +167,9 @@
     <td>{{this.cableType}}</td>
     <td>{{this.conductor}}</td>
   {{else}}
-    <td>
       {{#if this.description}}
-        {{this.description}}
+       <td>{{this.description}}</td>
       {{/if}}
-    </td>
-    <td>{{this.name}}</td>
   {{/if}}
 
   {{#if ../includeDiscount}}
