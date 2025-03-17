@@ -42,8 +42,12 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
     const gstAmount = totalAmount * 0.18;
     const grandTotal = totalAmount + gstAmount;
     
+    const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
+    const logoBase64 = fs.readFileSync(logoPath, "base64");
+    const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
     // Render HTML with data
     const context = {
+      logo: logoDataUri,
       quotationDetails,
       payment,
       validity,
@@ -139,8 +143,13 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
     const gstAmount = totalAmount * 0.18;
     const grandTotal = totalAmount + gstAmount;
     
+    const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
+    const logoBase64 = fs.readFileSync(logoPath, "base64");
+    const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
+
     // Render HTML with data
     const context = {
+      logo: logoDataUri,
       quotationDetails,
       payment,
       validity: "7 days validity", // Default validity for dowells
@@ -235,9 +244,14 @@ async function Rest3M(quotationDetails, payment, validity, cart_id) {
     );
     const gstAmount = totalAmount * 0.18;
     const grandTotal = totalAmount + gstAmount;
-    
+
+const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
+const logoBase64 = fs.readFileSync(logoPath, "base64");
+const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
+
     // Render HTML with data
     const context = {
+      logo: logoDataUri,
       quotationDetails,
       payment,
       validity,
