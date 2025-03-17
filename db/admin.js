@@ -142,20 +142,24 @@ async function executeQuery(query, values = []) {
   async function finalizeQuotation(cart_id, heatshrink, dowells, m3, payment, validity) {
     console.log("heatshrink", heatshrink,"dowells",dowells, "m3", m3)
     try {
-      // Handle Heatshrink
-      const heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity);
-  
-      // Handle Dowells
-      const dowellsDetails = await processDowells(cart_id, dowells, payment);
-  
-      // Handle M3
-      const m3Details = await processM3(cart_id, m3, payment, validity);
-  
-      return {
-        heatshrinkDetails,
-        dowellsDetails,
-        m3Details,
-      };
+      const results = {};
+
+    // Handle Heatshrink if not empty
+    if (heatshrink && heatshrink.length > 0) {
+      results.heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity);
+    }
+
+    // Handle Dowells if not empty
+    if (dowells && dowells.length > 0) {
+      results.dowellsDetails = await processDowells(cart_id, dowells, payment);
+    }
+
+    // Handle M3 if not empty
+    if (m3 && m3.length > 0) {
+      results.m3Details = await processM3(cart_id, m3, payment, validity);
+    }
+
+    return results;
     } catch (error) {
       console.error("Error in finalizeQuotation:", error);
       throw error;
