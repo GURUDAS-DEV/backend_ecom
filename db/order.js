@@ -71,13 +71,13 @@ async function findUserByEmail(email) {
   return result[0].id; // Return userId if found
 }
 
-async function userDb(name, email, phone) {
+async function userDb(name, company_name, email, phone) {
   const query = `
-    INSERT INTO user_details (name, email, phone)
-    VALUES ($1, $2, $3)
+    INSERT INTO user_details (name, company_name, email, phone)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
-  const values = [name, email, phone];
+  const values = [name, company_name, email, phone];
 
   try {
     const result = await executeQuery(query, values);

@@ -212,6 +212,13 @@ async function executeQuery(query, values = []) {
     return response;
   }
   
+  async function userdata() {
+    const userDetailsQuery = `SELECT * FROM user_details`;
+    const userDetailsResult = await executeQuery(userDetailsQuery)
+    const userDetails = userDetailsResult[0];
+    return userDetails
+  }
+
   async function fetchhsItemDetails(cart_id, sku) {
     try {
       const orderDetailsQuery = `
@@ -236,7 +243,7 @@ async function executeQuery(query, values = []) {
       console.log("quotationresult", quotationResult,orderDetails.id, cart_id)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
-  
+      const userResult = userdata()
       return {
         brand: "3M",
         quantity: orderDetails.quantity ?? 0,
@@ -250,6 +257,10 @@ async function executeQuery(query, values = []) {
         hsn: "85469090",
         rate: price ?? 0,
         delivery: delivery ?? 0,
+        customer_name: userResult.name,
+        customer_company: userResult.company_name,
+        customer_email: userResult.email,
+        customer_phone: userResult.phone
       };
     } catch (error) {
       console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);
@@ -297,7 +308,8 @@ async function executeQuery(query, values = []) {
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
       const discount = quotationResult[0].discount;
-  
+      const userResult = userdata()
+
       return {
         brand: "dowells",
         description: dowellsDetails.description,
@@ -309,6 +321,10 @@ async function executeQuery(query, values = []) {
         rate: price ?? 0,
         discount: discount,
         delivery: delivery ?? 0,
+        customer_name:userResult.name,
+        customer_company:userResult.company_name,
+        customer_email:userResult.email,
+        customer_phone:userResult.phone
       };
     } catch (error) {
       console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);
@@ -339,7 +355,8 @@ async function executeQuery(query, values = []) {
       const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
-  
+      const userResult = userdata()
+
       return {
         brand: "3M",
         quantity: orderDetails.quantity ?? 0,
@@ -347,6 +364,10 @@ async function executeQuery(query, values = []) {
         hsn: "85469090",
         rate: price ?? 0,
         delivery: delivery ?? 0,
+        customer_name:userResult.name,
+        customer_company:userResult.company_name,
+        customer_email:userResult.email,
+        customer_phone:userResult.phone
       };
     } catch (error) {
       console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);

@@ -52,7 +52,7 @@ router.post("/order", async (req, res) => {
 router.post("/user", async (req, res) => {
   try {
     const parsedBody = userSchema.parse(req.body);
-    const { name, email, phone } = parsedBody;
+    const { name, company_name, email, phone } = parsedBody;
     /*
     console.log(email)
     const existingUser = await findUserByEmail(email);
@@ -61,7 +61,7 @@ router.post("/user", async (req, res) => {
       return res.status(200).json({ success: true, userId: existingUser });
     }
       */
-    const id = await userDb(name, email, phone);
+    const id = await userDb(name, company_name, email, phone);
     res.status(201).json({ success: true, userId: id });
   } catch (error) {
     if (error instanceof z.ZodError) {

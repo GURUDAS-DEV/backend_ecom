@@ -12,19 +12,7 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-     CREATE TABLE message (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
-    subject VARCHAR(255),
-    body TEXT
-);
-
-CREATE TABLE sub (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE
-);
+     ALTER TABLE user_details ADD COLUMN company_name VARCHAR(255);
 
     `);
   })
