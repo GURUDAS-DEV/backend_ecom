@@ -25,23 +25,24 @@ async function executeQuery(query, values = []) {
 
       // Construct the base query
       let query = `
-          SELECT 
-              cd.id AS cart_id,
-              cd.status AS cart_status,
-              cd.last_update AS cart_last_update,
-              ud.name AS user_name,
-              ud.email AS user_email,
-              ud.phone AS user_phone,
-              od.id AS order_id,
-              od.sku,
-              od.cat_no,
-              od.quantity,
-              dp.price AS product_price
-          FROM cart_details cd
-          INNER JOIN user_details ud ON cd.user_id = ud.id
-          INNER JOIN order_details od ON od.cart_id = cd.id
-          LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no
-          WHERE cd.status != 'fulfilled'`;
+       SELECT 
+    cd.id AS cart_id,
+    cd.status AS cart_status,
+    cd.last_update AS cart_last_update,
+    ud.name AS user_name,
+    ud.email AS user_email,
+    ud.phone AS user_phone,
+    od.id AS order_id,
+    od.sku,
+    od.cat_no,
+    od.quantity,
+    dp.price AS product_price
+FROM cart_details cd
+INNER JOIN user_details ud ON cd.user_id = ud.id
+INNER JOIN order_details od ON od.cart_id = cd.id
+LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no
+WHERE cd.status NOT IN ('fulfilled', 'cancelled');
+`;
 
       // Apply sorting based on datesort or statussort
       if (datesort === 'true') {
