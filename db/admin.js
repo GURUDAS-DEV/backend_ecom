@@ -32,7 +32,7 @@ async function executeQuery(query, values = []) {
                 ud.name AS user_name,
                 ud.email AS user_email,
                 ud.phone AS user_phone,
-                od.id AS order_id,
+                od.order_id AS order_id,
                 od.sku,
                 od.cat_no,
                 od.quantity,
@@ -443,10 +443,12 @@ async function executeQuery(query, values = []) {
         const { sku: fetchedSku, cat_no: fetchedCatNo } = orderDetails[0];
 
         if (fetchedCatNo == null) {
+          const inserField = [];
+            inserField.push(fetchedSku);
             // Insert into discarded_items
             const insertDiscardQuery = `INSERT INTO discarded_items (sku, cart_id, order_id) VALUES ($1, $2, $3);`;
-            console.log("Executing INSERT:", sku, cart_id, order_id);
-            await executeQuery(insertDiscardQuery, [sku, cart_id, order_id]);
+            console.log("Executing INSERT:", inserField, cart_id, order_id);
+            await executeQuery(insertDiscardQuery, [inserField[0], cart_id, order_id]);
         } else {
             const inserField = [];
             inserField.push(fetchedCatNo);
@@ -489,6 +491,4 @@ async function executeQuery(query, values = []) {
     }
 }
 
-
-    
   module.exports = {enquiriesDb, updateStatus, quotation, discard, fetchAndCategorizeData, finalizeQuotation}
