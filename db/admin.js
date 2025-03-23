@@ -20,105 +20,104 @@ async function executeQuery(query, values = []) {
 
   const enquiriesDb = async (page, limit, datesort, statussort) => {
     try {
-      // Calculate the offset for pagination
-      const offset = (page - 1) * limit;
+        // Calculate the offset for pagination
+        const offset = (page - 1) * limit;
 
-      // Construct the base query
-      let query = `
-       SELECT 
-    cd.id AS cart_id,
-    cd.status AS cart_status,
-    cd.last_update AS cart_last_update,
-    ud.name AS user_name,
-    ud.email AS user_email,
-    ud.phone AS user_phone,
-    od.id AS order_id,
-    od.sku,
-    od.cat_no,
-    od.quantity,
-    dp.price AS product_price
-FROM cart_details cd
-INNER JOIN user_details ud ON cd.user_id = ud.id
-INNER JOIN order_details od ON od.cart_id = cd.id
-LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no
-WHERE cd.status NOT IN ('fulfilled', 'cancelled');
-`;
+        // Construct the base query
+        let query = `
+            SELECT 
+                cd.id AS cart_id,
+                cd.status AS cart_status,
+                cd.last_update AS cart_last_update,
+                ud.name AS user_name,
+                ud.email AS user_email,
+                ud.phone AS user_phone,
+                od.id AS order_id,
+                od.sku,
+                od.cat_no,
+                od.quantity,
+                dp.price AS product_price
+            FROM cart_details cd
+            INNER JOIN user_details ud ON cd.user_id = ud.id
+            INNER JOIN order_details od ON od.cart_id = cd.id
+            LEFT JOIN dowells_pricelist dp ON od.cat_no = dp.cat_no
+            WHERE cd.status NOT IN ('fulfilled', 'cancelled')
+        `;
 
-      // Apply sorting based on datesort or statussort
-      if (datesort === 'true') {
-          query += ` ORDER BY cd.last_update DESC`; // Sort by last_update descending (newest first)
-      } else if (statussort === 'true') {
-          query += ` ORDER BY 
-              CASE 
-                  WHEN cd.status = 'Opened' THEN 1  -- 'opened' should come first
-                  WHEN cd.status = 'New' THEN 2    -- 'new' comes after 'opened'
-                  ELSE 3                           -- Any other status comes last
-              END`; 
-      } else {
-        query += ` ORDER BY 
-              CASE 
-                  WHEN cd.status = 'New' THEN 1  -- 'opened' should come first
-                  WHEN cd.status = 'Opened' THEN 2    -- 'new' comes after 'opened'
-                  ELSE 3                           -- Any other status comes last
-              END`; 
-      }
-      
+        // Sorting logic
+        if (datesort === 'true') {
+            query += ` ORDER BY cd.last_update DESC`; 
+        } else if (statussort === 'true') {
+            query += ` ORDER BY 
+                CASE 
+                    WHEN cd.status = 'Opened' THEN 1  
+                    WHEN cd.status = 'New' THEN 2    
+                    ELSE 3                           
+                END`; 
+        } else {
+            query += ` ORDER BY 
+                CASE 
+                    WHEN cd.status = 'New' THEN 1  
+                    WHEN cd.status = 'Opened' THEN 2    
+                    ELSE 3                           
+                END`; 
+        }
 
-      // Apply pagination (LIMIT and OFFSET)
-      query += ` LIMIT ${limit} OFFSET ${offset};`;
+        // Apply pagination
+        query += ` LIMIT $1 OFFSET $2;`;
 
-      const rawData = await executeQuery(query);
+        // Execute the query with parameterized values
+        const rawData = await executeQuery(query, [limit, offset]);
 
-      // Transform data into the desired format
-      const groupedData = rawData.reduce((acc, row) => {
-          const {
-              cart_id,
-              cart_status,
-              user_name,
-              user_email,
-              user_phone,
-              order_id,
-              sku,
-              cat_no,
-              quantity,
-              product_price,
-          } = row;
+        // Transform data into grouped format
+        const groupedData = rawData.reduce((acc, row) => {
+            const {
+                cart_id,
+                cart_status,
+                user_name,
+                user_email,
+                user_phone,
+                order_id,
+                sku,
+                cat_no,
+                quantity,
+                product_price,
+            } = row;
 
-          // Find if the cart already exists
-          let cart = acc.find((c) => c.cart_id === cart_id);
+            // Find if the cart already exists
+            let cart = acc.find((c) => c.cart_id === cart_id);
 
-          if (!cart) {
-              // If not, create a new cart entry
-              cart = {
-                  cart_id,
-                  cart_status,
-                  user_name,
-                  user_email,
-                  user_phone,
-                  orders: [],
-              };
-              acc.push(cart);
-          }
+            if (!cart) {
+                // If not, create a new cart entry
+                cart = {
+                    cart_id,
+                    cart_status,
+                    user_name,
+                    user_email,
+                    user_phone,
+                    orders: [],
+                };
+                acc.push(cart);
+            }
 
-          cart.orders.push({
-              order_id,
-              sku,
-              cat_no,
-              quantity,
-              product_price,
-          });
+            cart.orders.push({
+                order_id,
+                sku,
+                cat_no,
+                quantity,
+                product_price,
+            });
 
-          return acc;
-      }, []);
+            return acc;
+        }, []);
 
-      return groupedData;
-  } catch (error) {
-      console.error("Error in enquiriesDb:", error);
-      throw new Error("Error fetching enquiries data");
-  }
+        return groupedData;
+    } catch (error) {
+        console.error("Error in enquiriesDb:", error);
+        throw new Error("Error fetching enquiries data");
+    }
 };
 
-  
   async function updateStatus(status, cart_id) {
     try {
       const query = `
@@ -432,39 +431,64 @@ WHERE cd.status NOT IN ('fulfilled', 'cancelled');
     }
   }
 
-  async function discard(sku, quantity, order_id, cart_id) {
+  async function discard(order_id, cart_id, skuu, cat_noo) {
     try {
-      const fetchQuery = `
-        SELECT sku, quantity
+        const fetchQuery = `
+        SELECT sku, cat_no
         FROM order_details
-        WHERE id = $1;
-      `;
-      const orderDetails = await executeQuery(fetchQuery, [order_id]);
-  
-      if (orderDetails.length === 0) {
-        throw new Error("Order not found");
-      }
-  
-      const { sku: fetchedSku, quantity: fetchedQuantity } = orderDetails[0];
-  
-      const insertDiscardQuery = `
-        INSERT INTO discarded_items (sku, quantity, cart_id, order_id)
-        VALUES ($1, $2, $3, $4);
-      `;
-      await executeQuery(insertDiscardQuery, [fetchedSku, fetchedQuantity, cart_id, order_id]);
-  
-      const updateOrderQuery = `
-        UPDATE order_details
-        SET sku = $1, quantity = $2
-        WHERE id = $3;
-      `;
-      await executeQuery(updateOrderQuery, [sku, quantity, order_id]);
+        WHERE order_id = $1 AND cart_id = $2;
+        `;
+        const orderDetails = await executeQuery(fetchQuery, [order_id, cart_id]);
+        console.log(orderDetails[0]);
+        const { sku: fetchedSku, cat_no: fetchedCatNo } = orderDetails[0];
 
-      return { message: "Operation completed successfully" };
+        if (fetchedCatNo == null) {
+            // Insert into discarded_items
+            const insertDiscardQuery = `INSERT INTO discarded_items (sku, cart_id, order_id) VALUES ($1, $2, $3);`;
+            console.log("Executing INSERT:", sku, cart_id, order_id);
+            await executeQuery(insertDiscardQuery, [sku, cart_id, order_id]);
+        } else {
+            const inserField = [];
+            inserField.push(fetchedCatNo);
+            console.log(inserField[0]);
+            const insertDiscardQuery = `INSERT INTO discarded_items (sku, cart_id, order_id) VALUES ($1, $2, $3);`;
+            console.log("Executing INSERT:", fetchedCatNo, cart_id, order_id);
+            await executeQuery(insertDiscardQuery, [inserField[0], cart_id, order_id]);
+        }
+
+        // Dynamically build update query
+        const updateFields = [];
+        const updateValues = [];
+        let paramIndex = 1;
+
+        if (skuu !== null) {
+            updateFields.push(`sku = $${paramIndex}`);
+            updateValues.push(skuu);
+            paramIndex++;
+        }
+        if (cat_noo !== null) {
+            updateFields.push(`cat_no = $${paramIndex}`);
+            updateValues.push(cat_noo);
+            paramIndex++;
+        }
+
+        if (updateFields.length > 0) {
+            const updateOrderQuery = `
+                UPDATE order_details
+                SET ${updateFields.join(", ")}
+                WHERE order_id = $${paramIndex} AND cart_id = $${paramIndex + 1};
+            `;
+            console.log("Executing UPDATE:", updateValues, order_id, cart_id);
+            await executeQuery(updateOrderQuery, [...updateValues, String(order_id), Number(cart_id)]);
+        }
+
+        return { message: "Operation completed successfully" };
     } catch (error) {
-      console.error("Error in discard function:", error);
-      throw new Error("Failed to complete discard operation");
+        console.error("Error in discard function:", error);
+        throw new Error("Failed to complete discard operation");
     }
-  }
+}
+
+
     
   module.exports = {enquiriesDb, updateStatus, quotation, discard, fetchAndCategorizeData, finalizeQuotation}

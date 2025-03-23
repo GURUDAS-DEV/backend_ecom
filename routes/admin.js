@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
-const { enquiriesDb, updateStatus, quotation, fetchAndCategorizeData, finalizeQuotation } = require("../db/admin");
+const { enquiriesDb, updateStatus, quotation, fetchAndCategorizeData, finalizeQuotation, discard } = require("../db/admin");
 const { quotation_mail } = require("../db/order");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 router.use(express.json());
@@ -87,5 +87,25 @@ router.post("/quotation", async (req, res) => {
         });
     }
 });
+
+router.post("/discard", async (req, res) => {
+    try {
+        const { edit, order_id, cart_id } = req.body;
+
+        // Determine sku and cat_no based on edit value
+        const data = edit.startsWith("3M") 
+            ? { sku: edit, cat_no: null } 
+            : { sku: null, cat_no: edit };
+
+        // Pass order_id, cart_id, sku, and cat_no to discard function
+        const response = await discard(order_id, cart_id, data.sku, data.cat_no);
+
+        res.status(200).json({ success: true, response });
+    } catch (error) {
+        console.error("Error in /discard", error);
+        res.status(500).json({ success: false, message: "An error occurred while discarding item" });
+    }
+});
+
 
 module.exports = router;

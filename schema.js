@@ -12,7 +12,7 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-     ALTER TABLE user_details ADD COLUMN company_name VARCHAR(255);
+     ALTER TABLE discarded_items DROP COLUMN quantity;
 
     `);
   })
