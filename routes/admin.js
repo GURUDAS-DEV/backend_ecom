@@ -67,7 +67,7 @@ router.post("/quotation", async (req, res) => {
 
             await quotation(rate, discount, order_id, cart_id, delivery);
         }
-
+        
         const response = await fetchAndCategorizeData(cart_id);
         console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
         const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
@@ -78,7 +78,7 @@ router.post("/quotation", async (req, res) => {
         if (pdf_url?.m3Details) urls.push(pdf_url.m3Details);        
         await quotation_mail(cart_id, urls , Reply )
         await updateStatus("Opened", cart_id)
-        res.status(200).json({ success: true, message: "quotation sent successfully"});
+        res.status(200).json({ success: true, message: "quotation sent successfully",urls: urls});
     } catch (error) {
         console.error("Error in /quotation", error);
         res.status(500).json({

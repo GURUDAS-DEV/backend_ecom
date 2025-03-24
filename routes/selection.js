@@ -51,16 +51,8 @@ router.post("/order", async (req, res) => {
 
 router.post("/user", async (req, res) => {
   try {
-    const parsedBody = userSchema.parse(req.body);
-    const { name, company_name, email, phone } = parsedBody;
-    /*
-    console.log(email)
-    const existingUser = await findUserByEmail(email);
-    console.log(existingUser)
-    if (existingUser) {
-      return res.status(200).json({ success: true, userId: existingUser });
-    }
-      */
+    const { name, company_name, email, phone } = req.body;
+    console.log(name,company_name,email,phone)
     const id = await userDb(name, company_name, email, phone);
     res.status(201).json({ success: true, userId: id });
   } catch (error) {

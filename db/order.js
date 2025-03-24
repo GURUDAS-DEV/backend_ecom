@@ -1,5 +1,7 @@
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer"); 
+const fs = require("fs");
+const handlebars = require("handlebars");
 const axios = require("axios")
 const path = require("path");
 
@@ -72,22 +74,43 @@ async function findUserByEmail(email) {
 }
 
 async function userDb(name, company_name, email, phone) {
-  const query = `
-    INSERT INTO user_details (name, company_name, email, phone)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *;
-  `;
-  const values = [name, company_name, email, phone];
-
   try {
-    const result = await executeQuery(query, values);
-    console.log("User data inserted successfully:", result[0]);
-    return result[0].id; // Returns the inserted user record
+    // Check if the email exists
+    const checkQuery = `SELECT id FROM user_details WHERE email = $1;`;
+    const checkResult = await executeQuery(checkQuery, [email]);
+
+    if (checkResult.length > 0) {
+      // Email exists, update the record
+      const updateQuery = `
+        UPDATE user_details 
+        SET name = $1, company_name = $2, phone = $3
+        WHERE email = $4
+        RETURNING *;
+      `;
+      const updateValues = [name, company_name, phone, email];
+      const updateResult = await executeQuery(updateQuery, updateValues);
+      
+      console.log("User data updated successfully:", updateResult[0]);
+      return updateResult[0].id;
+    } else {
+      // Email does not exist, insert new record
+      const insertQuery = `
+        INSERT INTO user_details (name, company_name, email, phone)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *;
+      `;
+      const insertValues = [name, company_name, email, phone];
+      const insertResult = await executeQuery(insertQuery, insertValues);
+      
+      console.log("User data inserted successfully:", insertResult[0]);
+      return insertResult[0].id;
+    }
   } catch (error) {
-    console.error("Error inserting user data:", error);
+    console.error("Error handling user data:", error);
     throw error;
   }
 }
+
 
 async function processOrderData(orderIds, email, status) {
   try {
@@ -171,36 +194,35 @@ async function deleteCartItem(order_id) {
 
 async function enquireMail(email, cart_id, subject) {
   try {
-    const query = `
-      SELECT name, quantity, sku, cat_no
-      FROM order_details 
-      WHERE cart_id = $1
-    `;
+    const query = `SELECT name, quantity, sku, cat_no FROM order_details WHERE cart_id = $1`;
     const values = [cart_id];
-    const result = await executeQuery(query, values); // Assuming result is an array
+    const result = await executeQuery(query, values);
 
-    let message = `Dear Customer,\n\n`;
-    message += `Thank you for your inquiry. We have received your request and here are the details associated with your cart ID: ${cart_id}.\n\n`;
-    message += `Order Details:\n\n`;
-    
-    // Table Header
-    message += `| No  | Name                                                      | Quantity | SKU / Cat No          |\n`;
-    message += `|-----|-----------------------------------------------------------|----------|-----------------------|\n`;
-    
-    // Iterate over result and format table rows
-    result.forEach((row, index) => {
-      const identifier = row.sku ? row.sku : row.cat_no;
-      message += `| ${String(index + 1).padEnd(3)} | ${row.name.padEnd(57)} | ${String(row.quantity).padEnd(8)} | ${identifier.padEnd(21)} |\n`;
+    // Read Handlebars template
+    const templatePath = path.join(__dirname, 'templates', 'emailTemplate.hbs');
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
+
+    // Register a helper for index increment
+    handlebars.registerHelper("inc", function (value) {
+      return parseInt(value) + 1;
     });
 
-    message += `\nWe will get back to you with a quotation shortly. In the meantime, please feel free to contact us if you have any further questions or need assistance.\n\n`;
-    message += `Thank you for choosing our services.\n\nBest regards,\n[Your Company Name]`;
+    // Convert result to Handlebars-friendly format
+    const items = result.map((row, index) => ({
+      name: row.name,
+      quantity: row.quantity,
+      sku: row.sku || row.cat_no,
+    }));
+
+    // Generate HTML email
+    const htmlMessage = template({ cart_id, items });
 
     const mailOptions = {
       from: process.env.SMTP_MAIL,
       to: email,
       subject: subject,
-      text: message,
+      html: htmlMessage, // Use 'html' instead of 'text'
     };
 
     await transporter.sendMail(mailOptions);
