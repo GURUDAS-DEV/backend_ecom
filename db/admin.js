@@ -118,8 +118,9 @@ async function executeQuery(query, values = []) {
     }
 };
 
-  async function updateStatus(status, cart_id) {
+  async function updateStatus(status, cart_id, urls) {
     try {
+      console.log(urls)
       const query = `
         UPDATE cart_details
         SET status = $1
@@ -178,7 +179,18 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await heatshrinkpdf(quotationDetails, payment,validity, cart_id);
+    const userDetailsQuery = ` 
+      SELECT ud.name, ud.company_name 
+FROM user_details ud
+JOIN cart_details cd ON cd.user_id = ud.id  -- Ensure this matches your actual schema
+WHERE cd.id = $1
+
+    `;
+
+    const userDetailsResult = await executeQuery(userDetailsQuery, [cart_id]);
+    const userDetails = userDetailsResult[0];
+    console.log(userDetails)
+    const response = await heatshrinkpdf(quotationDetails, payment,validity, cart_id, userDetails.name, userDetails.company_name);
     return response;
   }
   
@@ -193,7 +205,19 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await dowellspdf(quotationDetails, payment, cart_id);
+    const userDetailsQuery = ` 
+      SELECT ud.name, ud.company_name 
+FROM user_details ud
+JOIN cart_details cd ON cd.user_id = ud.id  -- Ensure this matches your actual schema
+WHERE cd.id = $1
+
+    `;
+
+    const userDetailsResult = await executeQuery(userDetailsQuery, [cart_id]);
+    const userDetails = userDetailsResult[0];
+    console.log(userDetails)
+    console.log("final check before pdf sent ", quotationDetails)
+    const response = await dowellspdf(quotationDetails, payment, cart_id,userDetails.name, userDetails.company_name);
     return response;
   }
   
@@ -208,7 +232,18 @@ async function executeQuery(query, values = []) {
         quotationDetails.items.push(item);
       }
     }
-    const response = await Rest3M(quotationDetails, payment, validity, cart_id);
+    const userDetailsQuery = ` 
+     SELECT ud.name, ud.company_name 
+FROM user_details ud
+JOIN cart_details cd ON cd.user_id = ud.id  -- Ensure this matches your actual schema
+WHERE cd.id = $1
+
+    `;
+
+    const userDetailsResult = await executeQuery(userDetailsQuery, [cart_id]);
+    const userDetails = userDetailsResult[0];
+    console.log(userDetails)
+    const response = await Rest3M(quotationDetails, payment, validity, cart_id,userDetails.name, userDetails.company_name);
     return response;
   }
   
@@ -222,7 +257,7 @@ async function executeQuery(query, values = []) {
   async function fetchhsItemDetails(cart_id, sku) {
     try {
       const orderDetailsQuery = `
-        SELECT id, quantity, technology, type, voltage, core, size, cabletype, conductor 
+        SELECT order_id, quantity, technology, type, voltage, core, size, cabletype, conductor 
         FROM order_details 
         WHERE cart_id = $1 AND sku = $2
       `;
@@ -239,11 +274,11 @@ async function executeQuery(query, values = []) {
         FROM quotation 
         WHERE order_id = $1 AND cart_id = $2
       `;
-      const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
-      console.log("quotationresult", quotationResult,orderDetails.id, cart_id)
+      const quotationResult = await executeQuery(quotationQuery, [orderDetails.order_id, cart_id]);
+      console.log("quotationresult", quotationResult,orderDetails.order_id, cart_id)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
-      const userResult = userdata()
+      
       return {
         brand: "3M",
         quantity: orderDetails.quantity ?? 0,
@@ -256,11 +291,7 @@ async function executeQuery(query, values = []) {
         conductor: orderDetails.conductor ?? "N/A",
         hsn: "85469090",
         rate: price ?? 0,
-        delivery: delivery ?? 0,
-        customer_name: userResult.name,
-        customer_company: userResult.company_name,
-        customer_email: userResult.email,
-        customer_phone: userResult.phone
+        delivery: delivery ?? 0
       };
     } catch (error) {
       console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);
@@ -278,14 +309,14 @@ async function executeQuery(query, values = []) {
       const dowellsDetailsResult = await executeQuery(dowellsDetailsQuery, [cat_no]); 
       console.log("dowellsreuslt",dowellsDetailsResult)
       const dowellsDetails = dowellsDetailsResult[0];
-  
+      console.log("testting dowells pdf", dowellsDetails.description,dowellsDetails.cable_od_mm,dowellsDetails.hsn_code)
       if (!dowellsDetails) {
         console.error(`Missing required fields for cat_no: ${cat_no} `);
         return null;
       }
       
       const orderDetailsQuery = `
-        SELECT id, quantity
+        SELECT order_id, quantity
         FROM order_details 
         WHERE cart_id = $1 AND cat_no = $2
       `;
@@ -294,7 +325,7 @@ async function executeQuery(query, values = []) {
       const orderDetails = orderDetailsResult[0];
       
       if (!orderDetails || !orderDetails.quantity) {
-        console.error(`Missing required fields for cart_id: ${cart_id} and sku: ${sku}`);
+        console.error(`Missing required fields for cart_id: ${cart_id} and cat_no: ${cat_no}`);
         return null;
       }
 
@@ -303,31 +334,27 @@ async function executeQuery(query, values = []) {
         FROM quotation 
         WHERE order_id = $1 AND cart_id = $2
       `;
-      const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
+      const quotationResult = await executeQuery(quotationQuery, [orderDetails.order_id, cart_id]);
       console.log("quotationresult",quotationResult)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
       const discount = quotationResult[0].discount;
-      const userResult = userdata()
+      const catt = cat_no
 
       return {
         brand: "dowells",
-        description: dowellsDetails.description,
+        description: dowellsDetails.description,  // ✅ Keeps correct value
         cableOd: dowellsDetails.cable_od_mm,
-        hsn: dowellsDetails.hsn,
+        cat_no: catt,
+        hsn: dowellsDetails.hsn_code,             // ✅ Keeps correct value
         quantity: orderDetails.quantity ?? 0,
-        description: orderDetails.name ?? 0,
-        hsn: "85469090",
         rate: price ?? 0,
         discount: discount,
-        delivery: delivery ?? 0,
-        customer_name:userResult.name,
-        customer_company:userResult.company_name,
-        customer_email:userResult.email,
-        customer_phone:userResult.phone
+        delivery: delivery ?? 0
       };
+      
     } catch (error) {
-      console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);
+      console.error(`Error fetching details for cart_id: ${cart_id} and cat_no: ${cat_no}`, error);
       return null;
     }
   }
@@ -335,7 +362,7 @@ async function executeQuery(query, values = []) {
   async function fetchrest3mItemDetails(cart_id, sku) {
     try {
       const orderDetailsQuery = `
-        SELECT id, quantity, name
+        SELECT order_id, quantity, name
         FROM order_details 
         WHERE cart_id = $1 AND sku = $2
       `;
@@ -352,10 +379,10 @@ async function executeQuery(query, values = []) {
         FROM quotation 
         WHERE order_id = $1 AND cart_id = $2
       `;
-      const quotationResult = await executeQuery(quotationQuery, [orderDetails.id, cart_id]);
+      const quotationResult = await executeQuery(quotationQuery, [orderDetails.order_id, cart_id]);
+      console.log("fetchrest3m",quotationResult, quotationResult[0].price)
       const price = quotationResult[0].price;
       const delivery = quotationResult[0].delivery;
-      const userResult = userdata()
 
       return {
         brand: "3M",
@@ -363,11 +390,7 @@ async function executeQuery(query, values = []) {
         description: orderDetails.name ?? 0,
         hsn: "85469090",
         rate: price ?? 0,
-        delivery: delivery ?? 0,
-        customer_name:userResult.name,
-        customer_company:userResult.company_name,
-        customer_email:userResult.email,
-        customer_phone:userResult.phone
+        delivery: delivery ?? 0
       };
     } catch (error) {
       console.error(`Error fetching details for cart_id: ${cart_id} and sku: ${sku}`, error);
@@ -386,7 +409,6 @@ async function executeQuery(query, values = []) {
   
       const result = await executeQuery(query, values);
       if (result.length === 0) {
-        console.log(`No data found for cart_id: ${cartId}`);
         return { heatshrink: [], m3: [], dowells: [] };
       }
   
@@ -418,13 +440,12 @@ async function executeQuery(query, values = []) {
   
   async function quotation(price, discount,order_id, cart_id, delivery) {
     try {
-
       const query = `
         INSERT INTO quotation (price, discount, cart_id, order_id, delivery)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
       `;
-       await executeQuery(query, [price, discount, cart_id, order_id, delivery]);
+       const result = await executeQuery(query, [price, discount, cart_id, order_id, delivery]);
     } catch (error) {
       console.error("Error inserting quotation:", error);
       throw new Error("Error inserting quotation");
@@ -439,7 +460,6 @@ async function executeQuery(query, values = []) {
         WHERE order_id = $1 AND cart_id = $2;
         `;
         const orderDetails = await executeQuery(fetchQuery, [order_id, cart_id]);
-        console.log(orderDetails[0]);
         const { sku: fetchedSku, cat_no: fetchedCatNo } = orderDetails[0];
 
         if (fetchedCatNo == null) {
@@ -447,14 +467,11 @@ async function executeQuery(query, values = []) {
             inserField.push(fetchedSku);
             // Insert into discarded_items
             const insertDiscardQuery = `INSERT INTO discarded_items (sku, cart_id, order_id) VALUES ($1, $2, $3);`;
-            console.log("Executing INSERT:", inserField, cart_id, order_id);
             await executeQuery(insertDiscardQuery, [inserField[0], cart_id, order_id]);
         } else {
             const inserField = [];
             inserField.push(fetchedCatNo);
-            console.log(inserField[0]);
             const insertDiscardQuery = `INSERT INTO discarded_items (sku, cart_id, order_id) VALUES ($1, $2, $3);`;
-            console.log("Executing INSERT:", fetchedCatNo, cart_id, order_id);
             await executeQuery(insertDiscardQuery, [inserField[0], cart_id, order_id]);
         }
 

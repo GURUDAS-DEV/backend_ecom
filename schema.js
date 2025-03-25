@@ -12,8 +12,7 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-     ALTER TABLE discarded_items DROP COLUMN quantity;
-
+     SELECT * FROM quotation WHERE cart_id = 40
     `);
   })
   .then((result) => {

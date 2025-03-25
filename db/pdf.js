@@ -25,7 +25,7 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
 });
 
-async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
+async function heatshrinkpdf(quotationDetails, payment, validity, cart_id, name, company_name) {
   try {
     // Load HTML template
     const templatePath = path.join(__dirname, 'templates', 'invoice-template.handlebars');
@@ -55,6 +55,8 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
       gstAmount: gstAmount.toFixed(2),
       grandTotal: grandTotal.toFixed(2),
       currentDate: new Date().toLocaleDateString(),
+      name,
+        company_name,
       hss: true
     };
     
@@ -126,15 +128,15 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id) {
   }
 }
 
-async function dowellspdf(quotationDetails, payment, cart_id) {
+async function dowellspdf(quotationDetails, payment, cart_id, name, company_name) {
   try {
     // Load HTML template
-    const templatePath = path.join(__dirname, 'templates', 'invoice-template.handlebars');
+    const templatePath = path.join(__dirname, 'templates', 'dowells.hbs');
     const templateHtml = fs.readFileSync(templatePath, 'utf8');
     
     // Compile template
     const template = Handlebars.compile(templateHtml);
-    
+    console.log("pdf quotaion details",quotationDetails)
     // For dowells items, calculate with discount
     const totalAmount = quotationDetails.items.reduce(
       (sum, item) => sum + item.rate * item.quantity * (1 - (item.discount || 0) / 100),
@@ -157,6 +159,8 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
       gstAmount: gstAmount.toFixed(2),
       grandTotal: grandTotal.toFixed(2),
       currentDate: new Date().toLocaleDateString(),
+      name,
+        company_name,
       includeDiscount: true // Flag to show discount column in template
     };
     
@@ -228,7 +232,7 @@ async function dowellspdf(quotationDetails, payment, cart_id) {
   }
 }
 
-async function Rest3M(quotationDetails, payment, validity, cart_id) {
+async function Rest3M(quotationDetails, payment, validity, cart_id, name, company_name) {
   try {
     // Load HTML template
     const templatePath = path.join(__dirname, 'templates', 'invoice-template.handlebars');
@@ -248,7 +252,7 @@ async function Rest3M(quotationDetails, payment, validity, cart_id) {
 const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
 const logoBase64 = fs.readFileSync(logoPath, "base64");
 const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
-
+console.log("pdfs code ", quotationDetails)
     // Render HTML with data
     const context = {
       logo: logoDataUri,
@@ -259,6 +263,8 @@ const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
       gstAmount: gstAmount.toFixed(2),
       grandTotal: grandTotal.toFixed(2),
       currentDate: new Date().toLocaleDateString(),
+       name,
+        company_name,
       isRest3M: true // Flag to identify Rest3M quotation
     };
     

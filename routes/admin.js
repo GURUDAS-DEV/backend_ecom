@@ -77,7 +77,7 @@ router.post("/quotation", async (req, res) => {
         if (pdf_url?.dowellsDetails) urls.push(pdf_url.dowellsDetails);
         if (pdf_url?.m3Details) urls.push(pdf_url.m3Details);        
         await quotation_mail(cart_id, urls , Reply )
-        await updateStatus("Opened", cart_id)
+        await updateStatus("Opened", cart_id, urls)
         res.status(200).json({ success: true, message: "quotation sent successfully",urls: urls});
     } catch (error) {
         console.error("Error in /quotation", error);

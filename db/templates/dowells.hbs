@@ -1,0 +1,126 @@
+{{! Dowells-specific Handlebars template }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dowells Invoice</title>
+  <style>
+    body {
+      font-family: 'Helvetica', sans-serif;
+      color: #333;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .title {
+      text-align: center;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      font-size: 10px;
+    }
+    th {
+      background-color: #f8f8f8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>SHETH TRADING CORPORATION</h1>
+      <p>Quotation / Proforma Invoice - Dowells</p>
+      <p>Date: {{currentDate}}</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sl.</th>
+          <th>Brand</th>
+          <th>Description</th>
+          <th>Cable OD (MM)</th>
+          <th>Cat No.</th>
+          <th>HSN</th>
+          <th>Qty.</th>
+          <th>Rate ₹</th>
+          <th>Discount %</th>
+          <th>Amount ₹</th>
+          <th>Delivery</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each quotationDetails.items}}
+        <tr>
+          <td>{{add @index 1}}</td>
+          <td>{{this.brand}}</td>
+          <td>{{this.description}}</td>
+          <td>{{this.cableOd}}</td>
+          <td>{{this.cat_no}}</td>
+          <td>{{this.hsn}}</td>
+          <td>{{this.quantity}}</td>
+          <td>{{this.rate}}</td>
+          <td>{{this.discount}}%</td>
+          <td>{{multiply this.rate this.quantity (subtract 100 this.discount) 0.01}}</td>
+          <td>{{this.delivery}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="summary">
+      <table class="summary-table">
+        <tr>
+          <td>Total Amount:</td>
+          <td class="text-right">₹ {{totalAmount}}</td>
+        </tr>
+        <tr>
+          <td>GST (18%):</td>
+          <td class="text-right">₹ {{gstAmount}}</td>
+        </tr>
+        <tr class="grand-total">
+          <td>Grand Total:</td>
+          <td class="text-right">₹ {{grandTotal}}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Payment Terms -->
+    <div class="footer">
+      <div class="footer-grid">
+        <div>
+          <h3>Payment Terms:</h3>
+          <p>{{payment}}</p>
+        </div>
+        <div>
+          <h3>Validity:</h3>
+          <p>{{validity}}</p>
+        </div>
+      </div>
+      
+      <!-- Signature -->
+      <div style="margin-top: 30px; text-align: right;">
+        <p>For SHETH TRADING CORPORATION</p>
+        <div style="height: 50px;"></div>
+        <p>Authorized Signatory</p>
+      </div>
+    </div>
+</body>
+</html>
