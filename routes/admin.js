@@ -76,9 +76,9 @@ router.post("/quotation", async (req, res) => {
         if (pdf_url?.heatshrinkDetails) urls.push(pdf_url.heatshrinkDetails);
         if (pdf_url?.dowellsDetails) urls.push(pdf_url.dowellsDetails);
         if (pdf_url?.m3Details) urls.push(pdf_url.m3Details);        
-        await quotation_mail(cart_id, urls , Reply )
-        await updateStatus("Opened", cart_id, urls)
-        res.status(200).json({ success: true, message: "quotation sent successfully",urls: urls});
+        await quotation_mail(cart_id, Reply, pdf_url.heatshrinkDetails, pdf_url.dowellsDetails,  pdf_url.m3Details, urls )
+        await updateStatus("Opened", cart_id, pdf_url.heatshrinkDetails, pdf_url.dowellsDetails,  pdf_url.m3Details)
+        res.status(200).json({ success: true, message: "quotation sent successfully",hs: pdf_url.heatshrinkDetails,dow: pdf_url.dowellsDetails, m3: pdf_url.m3Details});
     } catch (error) {
         console.error("Error in /quotation", error);
         res.status(500).json({

@@ -12,7 +12,11 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-     SELECT * FROM quotation WHERE cart_id = 40
+     ALTER TABLE cart_details
+ADD COLUMN hs VARCHAR(225),
+ADD COLUMN dow VARCHAR(225),
+ADD COLUMN m3 VARCHAR(225);
+
     `);
   })
   .then((result) => {

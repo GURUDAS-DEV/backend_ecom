@@ -29,6 +29,9 @@ async function executeQuery(query, values = []) {
                 cd.id AS cart_id,
                 cd.status AS cart_status,
                 cd.last_update AS cart_last_update,
+                cd.hs,
+                cd.dow,
+                cd.m3,
                 ud.name AS user_name,
                 ud.email AS user_email,
                 ud.phone AS user_phone,
@@ -74,6 +77,10 @@ async function executeQuery(query, values = []) {
             const {
                 cart_id,
                 cart_status,
+                cart_last_update,
+                hs,
+                dow,
+                m3,
                 user_name,
                 user_email,
                 user_phone,
@@ -92,6 +99,10 @@ async function executeQuery(query, values = []) {
                 cart = {
                     cart_id,
                     cart_status,
+                    cart_last_update,
+                    hs,
+                    dow,
+                    m3,
                     user_name,
                     user_email,
                     user_phone,
@@ -118,9 +129,9 @@ async function executeQuery(query, values = []) {
     }
 };
 
-  async function updateStatus(status, cart_id, urls) {
+
+  async function updateStatus(status, cart_id) {
     try {
-      console.log(urls)
       const query = `
         UPDATE cart_details
         SET status = $1

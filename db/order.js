@@ -233,8 +233,16 @@ async function enquireMail(email, cart_id, subject) {
   }
 }
 
-async function quotation_mail(cart_id, urls, reply) {
+async function quotation_mail(cart_id, reply, hs, dow, m3, urls) {
   try {
+
+    const query = `
+        UPDATE cart_details
+        SET hs = $2, dow = $3, m3 = $4
+        WHERE id = $1;
+      `;
+      const values = [cart_id, hs, dow, m3];
+       await executeQuery(query, values);
     // Fetch the user_id from cart_details table
     const cartDetails = await executeQuery('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
     if (!cartDetails) {
