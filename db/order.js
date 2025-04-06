@@ -194,7 +194,7 @@ async function deleteCartItem(order_id) {
 
 async function enquireMail(email, cart_id, subject) {
   try {
-    const query = `SELECT name, quantity, sku, cat_no FROM order_details WHERE cart_id = $1`;
+    const query = `SELECT name, quantity FROM order_details WHERE cart_id = $1`;
     const values = [cart_id];
     const result = await executeQuery(query, values);
 
@@ -211,8 +211,7 @@ async function enquireMail(email, cart_id, subject) {
     // Convert result to Handlebars-friendly format
     const items = result.map((row, index) => ({
       name: row.name,
-      quantity: row.quantity,
-      sku: row.sku || row.cat_no,
+      quantity: row.quantity
     }));
 
     // Generate HTML email
