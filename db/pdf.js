@@ -25,7 +25,7 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
 });
 
-async function heatshrinkpdf(quotationDetails, payment, validity, cart_id, name, company_name) {
+async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charge,cart_id, name, company_name) {
   try {
     // Load HTML template
     const templatePath = path.join(__dirname, 'templates', 'invoice-template.handlebars');
@@ -40,7 +40,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id, name,
       0
     );
     const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount;
+    const grandTotal = totalAmount + gstAmount + Delivery_charge;
     
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
@@ -51,6 +51,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id, name,
       quotationDetails,
       payment,
       validity,
+      Delivery_charge,
       totalAmount: totalAmount.toFixed(2),
       gstAmount: gstAmount.toFixed(2),
       grandTotal: grandTotal.toFixed(2),
@@ -128,7 +129,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, cart_id, name,
   }
 }
 
-async function dowellspdf(quotationDetails, payment, cart_id, name, company_name) {
+async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, name, company_name) {
   try {
     // Load HTML template
     const templatePath = path.join(__dirname, 'templates', 'dowells.hbs');
@@ -143,7 +144,7 @@ async function dowellspdf(quotationDetails, payment, cart_id, name, company_name
       0
     );
     const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount;
+    const grandTotal = totalAmount + gstAmount + Delivery_charge;
     
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
@@ -154,6 +155,7 @@ async function dowellspdf(quotationDetails, payment, cart_id, name, company_name
       logo: logoDataUri,
       quotationDetails,
       payment,
+      Delivery_charge,
       validity: "7 days validity", // Default validity for dowells
       totalAmount: totalAmount.toFixed(2),
       gstAmount: gstAmount.toFixed(2),
@@ -232,7 +234,7 @@ async function dowellspdf(quotationDetails, payment, cart_id, name, company_name
   }
 }
 
-async function Rest3M(quotationDetails, payment, validity, cart_id, name, company_name) {
+async function Rest3M(quotationDetails, payment, validity, Delivery_charge, cart_id, name, company_name) {
   try {
     // Load HTML template
     const templatePath = path.join(__dirname, 'templates', 'invoice-template.handlebars');
@@ -247,7 +249,7 @@ async function Rest3M(quotationDetails, payment, validity, cart_id, name, compan
       0
     );
     const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount;
+    const grandTotal = totalAmount + gstAmount + Delivery_charge;
 
 const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
 const logoBase64 = fs.readFileSync(logoPath, "base64");
@@ -259,6 +261,7 @@ console.log("pdfs code ", quotationDetails)
       quotationDetails,
       payment,
       validity,
+      Delivery_charge,
       totalAmount: totalAmount.toFixed(2),
       gstAmount: gstAmount.toFixed(2),
       grandTotal: grandTotal.toFixed(2),

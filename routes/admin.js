@@ -44,9 +44,9 @@ router.post("/quotation", async (req, res) => {
             });
         }
 
-        const { Payment, Validity, Reply } = details;
+        const { Payment, Validity, Delivery_charge, Reply } = details;
 
-        if (!Payment || !Validity || !Reply ) {
+        if (!Payment || !Validity || !Delivery_charge || !Reply ) {
             return res.status(400).json({
                 success: false,
                 message: "Missing required fields in 'details' object.",
@@ -69,8 +69,7 @@ router.post("/quotation", async (req, res) => {
         }
         
         const response = await fetchAndCategorizeData(cart_id);
-        console.log("heatshrink", response.heatshrink,"dowells",response.dowells, "m3", response.m3)
-        const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity);
+        const pdf_url= await finalizeQuotation(cart_id, response.heatshrink, response.dowells, response.m3, Payment, Validity, Delivery_charge);
         const urls = [];
 
         if (pdf_url?.heatshrinkDetails) urls.push(pdf_url.heatshrinkDetails);

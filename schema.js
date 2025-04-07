@@ -12,10 +12,8 @@ client.connect()
     console.log('Connected to the database');
     // Execute the SQL query
     return client.query(`
-     ALTER TABLE cart_details
-ADD COLUMN hs VARCHAR(225),
-ADD COLUMN dow VARCHAR(225),
-ADD COLUMN m3 VARCHAR(225);
+    ALTER TABLE quotation
+ADD COLUMN delivery_charge DECIMAL(10, 2) DEFAULT 0.00;
 
     `);
   })

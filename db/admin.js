@@ -20,10 +20,12 @@ async function executeQuery(query, values = []) {
 
   const enquiriesDb = async (page, limit, datesort, statussort) => {
     try {
-        // Calculate the offset for pagination
-        const offset = (page - 1) * limit;
+        const pageNumber = parseInt(page, 10) || 1;
+        const limitNumber = parseInt(limit, 10) || 10;
+        const offset = (pageNumber - 1) * limitNumber;
 
-        // Construct the base query
+        console.info(`[INFO] Fetching enquiries | Page: ${pageNumber}, Limit: ${limitNumber}, DateSort: ${datesort}, StatusSort: ${statussort}`);
+
         let query = `
             SELECT 
                 cd.id AS cart_id,
@@ -35,7 +37,7 @@ async function executeQuery(query, values = []) {
                 ud.name AS user_name,
                 ud.email AS user_email,
                 ud.phone AS user_phone,
-                od.order_id AS order_id,
+                od.order_id,
                 od.sku,
                 od.cat_no,
                 od.quantity,
@@ -49,30 +51,33 @@ async function executeQuery(query, values = []) {
 
         // Sorting logic
         if (datesort === 'true') {
-            query += ` ORDER BY cd.last_update DESC`; 
+            query += ` ORDER BY cd.last_update DESC`;
         } else if (statussort === 'true') {
             query += ` ORDER BY 
                 CASE 
-                    WHEN cd.status = 'Opened' THEN 1  
-                    WHEN cd.status = 'New' THEN 2    
-                    ELSE 3                           
-                END`; 
+                    WHEN cd.status = 'Opened' THEN 1
+                    WHEN cd.status = 'New' THEN 2
+                    ELSE 3
+                END`;
         } else {
             query += ` ORDER BY 
                 CASE 
-                    WHEN cd.status = 'New' THEN 1  
-                    WHEN cd.status = 'Opened' THEN 2    
-                    ELSE 3                           
-                END`; 
+                    WHEN cd.status = 'New' THEN 1
+                    WHEN cd.status = 'Opened' THEN 2
+                    ELSE 3
+                END`;
         }
 
-        // Apply pagination
         query += ` LIMIT $1 OFFSET $2;`;
 
-        // Execute the query with parameterized values
-        const rawData = await executeQuery(query, [limit, offset]);
+        console.info("[INFO] Final SQL Query:\n", query);
 
-        // Transform data into grouped format
+        const rawData = await executeQuery(query, [limitNumber, offset]);
+
+        if (!rawData || rawData.length === 0) {
+            console.warn("[WARN] No enquiries found with the given parameters.");
+        }
+
         const groupedData = rawData.reduce((acc, row) => {
             const {
                 cart_id,
@@ -91,11 +96,9 @@ async function executeQuery(query, values = []) {
                 product_price,
             } = row;
 
-            // Find if the cart already exists
             let cart = acc.find((c) => c.cart_id === cart_id);
 
             if (!cart) {
-                // If not, create a new cart entry
                 cart = {
                     cart_id,
                     cart_status,
@@ -124,8 +127,8 @@ async function executeQuery(query, values = []) {
 
         return groupedData;
     } catch (error) {
-        console.error("Error in enquiriesDb:", error);
-        throw new Error("Error fetching enquiries data");
+        console.error("[ERROR] Failed to fetch enquiries:", error.message, "\nStack:", error.stack);
+        throw new Error("Failed to fetch enquiries data from database");
     }
 };
 
@@ -151,24 +154,24 @@ async function executeQuery(query, values = []) {
     }
   }
 
-  async function finalizeQuotation(cart_id, heatshrink, dowells, m3, payment, validity) {
+  async function finalizeQuotation(cart_id, heatshrink, dowells, m3, payment, validity, Delivery_charge) {
     console.log("heatshrink", heatshrink,"dowells",dowells, "m3", m3)
     try {
       const results = {};
 
     // Handle Heatshrink if not empty
     if (heatshrink && heatshrink.length > 0) {
-      results.heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity);
+      results.heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity, Delivery_charge);
     }
 
     // Handle Dowells if not empty
     if (dowells && dowells.length > 0) {
-      results.dowellsDetails = await processDowells(cart_id, dowells, payment);
+      results.dowellsDetails = await processDowells(cart_id, dowells, payment, Delivery_charge);
     }
 
     // Handle M3 if not empty
     if (m3 && m3.length > 0) {
-      results.m3Details = await processM3(cart_id, m3, payment, validity);
+      results.m3Details = await processM3(cart_id, m3, payment, validity, Delivery_charge);
     }
 
     return results;
@@ -178,7 +181,7 @@ async function executeQuery(query, values = []) {
     }
   }
   
-  async function processHeatshrink(cart_id, heatshrink, payment, validity) {
+  async function processHeatshrink(cart_id, heatshrink, payment, validity, Delivery_charge) {
     const quotationDetails = {
       items: [],
       validity,
@@ -201,11 +204,11 @@ WHERE cd.id = $1
     const userDetailsResult = await executeQuery(userDetailsQuery, [cart_id]);
     const userDetails = userDetailsResult[0];
     console.log(userDetails)
-    const response = await heatshrinkpdf(quotationDetails, payment,validity, cart_id, userDetails.name, userDetails.company_name);
+    const response = await heatshrinkpdf(quotationDetails, payment,validity, Delivery_charge,cart_id, userDetails.name, userDetails.company_name);
     return response;
   }
   
-  async function processDowells( cart_id,dowells, payment) {
+  async function processDowells( cart_id,dowells, payment, Delivery_charge) {
     console.log("dowells", dowells)
     const quotationDetails = {
       items: [],
@@ -228,11 +231,11 @@ WHERE cd.id = $1
     const userDetails = userDetailsResult[0];
     console.log(userDetails)
     console.log("final check before pdf sent ", quotationDetails)
-    const response = await dowellspdf(quotationDetails, payment, cart_id,userDetails.name, userDetails.company_name);
+    const response = await dowellspdf(quotationDetails, payment, Delivery_charge,cart_id,userDetails.name, userDetails.company_name);
     return response;
   }
   
-  async function processM3(cart_id, m3, payment, validity) {
+  async function processM3(cart_id, m3, payment, validity, Delivery_charge) {
     const quotationDetails = {
       items: [],
       validity,
@@ -254,7 +257,7 @@ WHERE cd.id = $1
     const userDetailsResult = await executeQuery(userDetailsQuery, [cart_id]);
     const userDetails = userDetailsResult[0];
     console.log(userDetails)
-    const response = await Rest3M(quotationDetails, payment, validity, cart_id,userDetails.name, userDetails.company_name);
+    const response = await Rest3M(quotationDetails, payment, validity, Delivery_charge,cart_id,userDetails.name, userDetails.company_name);
     return response;
   }
   
