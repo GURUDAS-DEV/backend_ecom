@@ -114,10 +114,11 @@ async function userDb(name, company_name, email, phone) {
 
 async function processOrderData(orderIds, email, status) {
   try {
-
+    console.log(orderIds, email, status)
     const userQuery = "SELECT id FROM user_details WHERE email = $1";
     const userResult = await executeQuery(userQuery, [email]);
-
+    console.log(userResult)
+    console.log(userResult[0].id)
     const userId = userResult[0].id;
     if (!userId) {
       throw new Error("User not found for the given email");

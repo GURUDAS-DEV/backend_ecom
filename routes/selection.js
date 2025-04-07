@@ -70,6 +70,7 @@ router.post("/create", async (req, res) => {
     if (!email || !Array.isArray(orderIds)) {
       return res.status(400).json({ success: false, message: "Invalid input data" });
     }
+    console.log("here is the route data ",orderIds, email)
     const response = await processOrderData(orderIds, email, "New");
     console.log(response.cartId)
     res.status(201).json({ success: true, message: "Data processed successfully", cart_id : response.cartId });
