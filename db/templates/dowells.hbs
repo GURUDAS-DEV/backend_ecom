@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dowells Invoice</title>
+  <title>Invoice</title>
   <style>
     body {
       font-family: 'Helvetica', sans-serif;
@@ -20,6 +20,30 @@
       justify-content: space-between;
       padding: 20px 0;
       border-bottom: 1px solid #eee;
+    }
+    .logo-section {
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+      margin-right: 15px;
+    }
+    .company-details h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .company-details p {
+      margin: 2px 0;
+      font-size: 10px;
+    }
+    .bank-details {
+      font-size: 10px;
+    }
+    .bank-details h2 {
+      font-size: 14px;
+      margin-bottom: 5px;
     }
     .title {
       text-align: center;
@@ -41,12 +65,63 @@
       background-color: #f8f8f8;
       font-weight: bold;
     }
+    .text-right {
+      text-align: right;
+    }
+    .summary {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+    .summary-table {
+      width: 300px;
+    }
+    .summary-table td {
+      padding: 5px 8px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 10px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .grand-total {
+      font-weight: bold;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>SHETH TRADING CORPORATION</h1>
+      <div class="logo-section">
+        <img src= {{logo}} alt="Logo" class="logo">
+        <div class="company-details">
+          <h1>SHETH TRADING CORPORATION</h1>
+          <p>22, RABINDRA SARANI, SHOP NO. 322, GR. FLOOR,</p>
+          <p>KOLKATA-700073</p>
+          <p>GSTIN: 19AALFS8359M1Z5</p>
+          <p>MSME UDYAM REG NO.: WB-10-0039292</p>
+          <p>CONTACT: 40240300/22379239</p>
+          <p>E-MAIL: shethtrd@gmail.com</p>
+        </div>
+      </div>
+      <div class="bank-details">
+        <h2>BANK DETAILS</h2>
+        <p>Bank Name: HDFC Bank Ltd.</p>
+        <p>Branch: India Exchange Place</p>
+        <p>A/c No.: 12422320004133</p>
+        <p>IFSC: HDFC0001242</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 10px; font-size: 12px;">
+      <p><strong>Customer Name:</strong> {{name}}</p>
+      <p><strong>Company Name:</strong> {{company_name}}</p>
+    </div>
       <p>Quotation / Proforma Invoice - Dowells</p>
       <p>Date: {{currentDate}}</p>
     </div>
@@ -119,7 +194,7 @@
       <div style="margin-top: 30px; text-align: right;">
         <p>For SHETH TRADING CORPORATION</p>
         <div style="height: 50px;"></div>
-        <p>Authorized Signatory</p>
+        <p>THIS IS A COMPUTER GENERATED COPY AND DOES NOT REQUIRE SIGNTAURE</p>
       </div>
     </div>
 </body>
