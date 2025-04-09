@@ -153,7 +153,9 @@
           <td>{{this.quantity}}</td>
           <td>{{this.rate}}</td>
           <td>{{this.discount}}%</td>
-          <td>{{multiply this.rate this.quantity (subtract 100 this.discount) 0.01}}</td>
+          <td>
+              {{toFixed (multiply (multiply this.rate this.quantity) (multiply (subtract 100 this.discount) 0.01)) 2}}
+          </td>
           <td>{{this.delivery}}</td>
         </tr>
         {{/each}}
@@ -166,13 +168,13 @@
           <td>Total Amount:</td>
           <td class="text-right">₹ {{totalAmount}}</td>
         </tr>
+         <tr>
+          <td>Delivery Charge:</td>
+          <td class="text-right">₹ {{Delivery_charge}}</td>
+        </tr>
         <tr>
           <td>GST (18%):</td>
           <td class="text-right">₹ {{gstAmount}}</td>
-        </tr>
-        <tr>
-          <td>Delivery Charge:</td>
-          <td class="text-right">₹ {{Delivery_charge}}</td>
         </tr>
         <tr class="grand-total">
           <td>Grand Total:</td>

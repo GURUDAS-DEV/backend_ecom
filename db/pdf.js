@@ -9,6 +9,11 @@ Handlebars.registerHelper('multiply', function(a, b) {
   return a * b;
 });
 
+Handlebars.registerHelper('toFixed', function (number, digits) {
+  return Number(number).toFixed(digits);
+});
+
+
 // Register additional Handlebars helpers
 Handlebars.registerHelper('add', function(a, b) {
   return a + b;
@@ -39,8 +44,9 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
       (sum, item) => sum + item.rate * item.quantity,
       0
     );
-    const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount + Delivery_charge;
+    const delivery_amount = totalAmount + Number(Delivery_charge)
+    const gstAmount = delivery_amount * 0.18;
+    const grandTotal = delivery_amount + gstAmount;
     
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
@@ -53,7 +59,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
       validity,
       Delivery_charge,
       totalAmount: totalAmount,
-      gstAmount: gstAmount.toFixed(2),
+      gstAmount: gstAmount,
       grandTotal: grandTotal,
       currentDate: new Date().toLocaleDateString(),
       name,
@@ -143,9 +149,10 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
       (sum, item) => sum + item.rate * item.quantity * (1 - (item.discount || 0) / 100),
       0
     );
-    const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount + Delivery_charge;
-    
+    const delivery_amount = totalAmount + Number(Delivery_charge)
+    const gstAmount = delivery_amount * 0.18;
+    const grandTotal = delivery_amount + gstAmount;
+
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
     const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
@@ -157,9 +164,9 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
       payment,
       Delivery_charge,
       validity: "7 days validity", // Default validity for dowells
-      totalAmount: totalAmount,
+      totalAmount: totalAmount.toFixed(2),
       gstAmount: gstAmount.toFixed(2),
-      grandTotal: grandTotal,
+      grandTotal: grandTotal.toFixed(2),
       currentDate: new Date().toLocaleDateString(),
       name,
         company_name,
@@ -248,8 +255,9 @@ async function Rest3M(quotationDetails, payment, validity, Delivery_charge, cart
       (sum, item) => sum + item.rate * item.quantity,
       0
     );
-    const gstAmount = totalAmount * 0.18;
-    const grandTotal = totalAmount + gstAmount + Delivery_charge;
+    const delivery_amount = totalAmount + Number(Delivery_charge)
+    const gstAmount = delivery_amount * 0.18;
+    const grandTotal = delivery_amount + gstAmount;
 
 const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
 const logoBase64 = fs.readFileSync(logoPath, "base64");
@@ -263,7 +271,7 @@ console.log("pdfs code ", quotationDetails)
       validity,
       Delivery_charge,
       totalAmount: totalAmount,
-      gstAmount: gstAmount.toFixed(2),
+      gstAmount: gstAmount,
       grandTotal: grandTotal,
       currentDate: new Date().toLocaleDateString(),
        name,
