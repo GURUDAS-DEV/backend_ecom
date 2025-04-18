@@ -263,23 +263,23 @@ async function quotation_mail(cart_id, reply, hs, dow, m3, urls) {
     const attachments = await Promise.all(urls.map(async (url) => {
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       return {
-        filename: `quotation_${url.split('/').pop()}`,  // Adjust naming as needed
+        filename: `Quotation_${url.split('/').pop()}`,  // Adjust naming as needed
         content: response.data
       };
     }));
 
     // Prepare the email content
-    const subject = "Here is your quotation";
+    const subject = "Here is your Quotation";
     const message = `Dear ${name},
 
-Here is the quotation for your enquiry with cart ID: ${cart_id}.
+Here is/are the quotation(s) for your enquiry with cart ID: ${cart_id}.
 
     ${reply}
 
 Feel free to contact us for any questions or further assistance.
 
 Best regards,
-Your Company Name`;
+SHETH TRADING CORPORATION`;
 
     // Email options
     const mailOptions = {

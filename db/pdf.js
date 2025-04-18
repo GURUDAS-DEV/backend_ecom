@@ -117,7 +117,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
     
     // Upload to S3
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/hs_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+    const s3Key = `quotations/3M_HS_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -223,7 +223,7 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
     
     // Upload to S3
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/dowells_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+    const s3Key = `quotations/DOWELL'S_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -329,7 +329,7 @@ console.log("pdfs code ", quotationDetails)
     
     // Upload to S3 with the same naming convention as before
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/rest3m_${cart_id}_quotation_${randomThreeDigit}.pdf`;
+    const s3Key = `quotations/3M_MRO_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME,

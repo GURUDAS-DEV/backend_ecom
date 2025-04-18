@@ -32,7 +32,7 @@ const userSchema = z.object({
 router.post("/order", async (req, res) => {
   try {
     const orderDetails = req.body;
-    const { sku, quantity, name, cat_no } = orderDetails;
+    const { quantity, name } = orderDetails;
 
     if ( !quantity || !name ) {
       return res.status(400).json({

@@ -260,13 +260,6 @@ WHERE cd.id = $1
     const response = await Rest3M(quotationDetails, payment, validity, Delivery_charge,cart_id,userDetails.name, userDetails.company_name);
     return response;
   }
-  
-  async function userdata() {
-    const userDetailsQuery = `SELECT * FROM user_details`;
-    const userDetailsResult = await executeQuery(userDetailsQuery)
-    const userDetails = userDetailsResult[0];
-    return userDetails
-  }
 
   async function fetchhsItemDetails(cart_id, sku) {
     try {
@@ -356,7 +349,7 @@ WHERE cd.id = $1
       const catt = cat_no
 
       return {
-        brand: "dowells",
+        brand: `Dowell's`,
         description: dowellsDetails.description,  // ✅ Keeps correct value
         cableOd: dowellsDetails.cable_od_mm,
         cat_no: catt,
