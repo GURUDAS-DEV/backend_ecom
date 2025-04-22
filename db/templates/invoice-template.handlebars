@@ -44,10 +44,12 @@
       font-size: 14px;
       margin-bottom: 5px;
     }
-    .title {
+       .main-title {
       text-align: center;
-      font-size: 16px;
-      margin: 20px 0;
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 10px;
     }
     table {
       width: 100%;
@@ -91,10 +93,20 @@
       font-weight: bold;
       font-size: 14px;
     }
+    .customer-details {
+      margin: 20px 0 10px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+
+    <!-- Main Title -->
+    <div class="main-title">
+      Quotation / Proforma Invoice
+    </div>
+
     <div class="header">
       <div class="logo-section">
         <img src= {{logo}} alt="Logo" class="logo">
@@ -117,14 +129,11 @@
       </div>
     </div>
 
-    <div style="margin-top: 10px; font-size: 12px;">
+      <!-- Customer and Date Section (just above table) -->
+    <div class="customer-details">
       <p><strong>Customer Name:</strong> {{name}}</p>
       <p><strong>Company Name:</strong> {{company_name}}</p>
-    </div>
-
-    <div class="title">
-      <h2>Quotation / Proforma Invoice</h2>
-      <p>Date: {{currentDate}}</p>
+      <p><strong>Date:</strong> {{currentDate}}</p>
     </div>
 
     <!-- Item Details -->
@@ -218,7 +227,7 @@
       <div style="margin-top: 30px; text-align: right;">
         <p>For SHETH TRADING CORPORATION</p>
         <div style="height: 50px;"></div>
-        <p>THIS IS A COMPUTER GENERATED COPY AND DOES NOT REQUIRE SIGNTAURE</p>
+        <p>THIS IS A COMPUTER GENERATED COPY AND DOES NOT REQUIRE SIGNATURE</p>
       </div>
     </div>
   </div>
