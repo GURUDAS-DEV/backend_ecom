@@ -3,6 +3,8 @@ const router = express.Router();
 const path = require("path");
 const { z } = require("zod");
 const { v4: uuidv4 } = require("uuid");
+const Fuse = require("fuse.js");
+const searchData = require("../db/searchData");
 const { 
   storeDataInDb, 
   userDb, 
@@ -27,6 +29,11 @@ const userSchema = z.object({
   name: z.string().min(1, "Name is required"), 
   email: z.string().email("Invalid email format"), 
   phone: z.string().optional() 
+});
+
+const fuse = new Fuse(searchData, {
+  keys: ["key"],
+  threshold: 0.4 // Adjust for fuzzy tolerance
 });
 
 router.post("/order", async (req, res) => {
@@ -181,6 +188,37 @@ router.get("/getContact", async (req, res) => {
   } catch (error) {
     console.error("Error fetching contacts:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+router.post("/search", async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ success: false, error: "Missing search query" });
+    }
+
+    const result = fuse.search(query);
+
+    if (result.length === 0) {
+      return res.status(404).json({ success: false, message: "No route found" });
+    }
+
+    // Map results into desired response structure
+    const results = result.map(r => ({
+      name: r.item.name,
+      route: r.item.route
+    }));
+
+    return res.json({
+      success: true,
+      results
+    });
+
+  } catch (error) {
+    console.error("Search error:", error);
+    return res.status(500).json({ success: false, error: "Server error" });
   }
 });
 
