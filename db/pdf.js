@@ -51,9 +51,13 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
     const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signBase64 = fs.readFileSync(signPath, "base64");
+    const signDataUri = `data:image/jpeg;base64,${signBase64}`;
     // Render HTML with data
     const context = {
       logo: logoDataUri,
+      sign: signDataUri,
       quotationDetails,
       payment,
       validity,
@@ -156,10 +160,13 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
     const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
     const logoBase64 = fs.readFileSync(logoPath, "base64");
     const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
-
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signBase64 = fs.readFileSync(signPath, "base64");
+    const signDataUri = `data:image/jpeg;base64,${signBase64}`;
     // Render HTML with data
     const context = {
       logo: logoDataUri,
+      sign: signDataUri,
       quotationDetails,
       payment,
       Delivery_charge,
@@ -262,10 +269,14 @@ async function Rest3M(quotationDetails, payment, validity, Delivery_charge, cart
 const logoPath = path.resolve(__dirname, "templates", "sheth_logo.jpg");
 const logoBase64 = fs.readFileSync(logoPath, "base64");
 const logoDataUri = `data:image/jpeg;base64,${logoBase64}`;
+const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signBase64 = fs.readFileSync(signPath, "base64");
+    const signDataUri = `data:image/jpeg;base64,${signBase64}`;
 console.log("pdfs code ", quotationDetails)
     // Render HTML with data
     const context = {
       logo: logoDataUri,
+      sign: signDataUri,
       quotationDetails,
       payment,
       validity,

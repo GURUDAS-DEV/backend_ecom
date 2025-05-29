@@ -46,12 +46,17 @@ router.post("/quotation", async (req, res) => {
 
         const { Payment, Validity, Delivery_Charges, Reply } = details;
 
-        if (!Payment || !Validity || !Delivery_Charges || !Reply ) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields in 'details' object.",
-            });
-        }
+       if (
+    Payment === undefined || Payment === null ||
+    Validity === undefined || Validity === null ||
+    Delivery_Charges === undefined || Delivery_Charges === null ||
+    Reply === undefined || Reply === null
+) {
+    return res.status(400).json({
+        success: false,
+        message: "Missing required fields in 'details' object.",
+    });
+}
 
         const cart_id = items[0]?.cart_id;
 

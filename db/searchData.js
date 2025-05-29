@@ -205,6 +205,213 @@ module.exports = [
         key: ["3M_WPT_SF", "3M Weather-Proof-Maistic-Tape Scotch Fil"],
         name: "3M Weather-Proof-Maistic-Tape Scotch Fil",
         route: "/3m/tapes/weather-proof-maistic-tape/scotch-fil"
+      },
+      {
+        key: [
+          "3M_HT_S23_19","3M_HT_S23_25","3M_HT_S23_38","3M_HT_S23_50","3M H-1 Tape Scotch 23"
+        ],
+        name: "3M HT Tape Scotch 23",
+        route: "/3m/tapes/h1-tape/scotch-23"
+      },
+      {
+        key: ["3M_HT_S27", "3M Ht Tape Scotch 27"],
+        name: "3M HT Tape Scotch 27",
+        route: "/3m/tapes/h1-tape/scotch-27"
+      },
+      {
+        key: ["3M_HT_S69", "3M HT Tape Scotch 69"],
+        name: "3M HT Tape Scotch 69",
+        route: "/3m/tapes/h1-tape/scotch-69"
+      },
+      {
+        key: ["3M_HT_S70", "3M HT Tape Scotch 70"],
+        name: "3M HT Tape Scotch 70",
+        route: "/3m/tapes/h1-tape/scotch-70"
+      },
+      {
+        key: ["3M_HT_S130", "3M HT Tape Scotch 130"],
+        name: "3M HT Tape Scotch 130",
+        route: "/3m/tapes/h1-tape/scotch-130c"
+      },
+      {
+        key: [
+          "RSI-7926SPL","RSI-7926","RSI-7928","RSI-7929","RSI-7930","RSI-7931","Dowell's Lugs Copper Fork-Type Insulated"
+        ],
+        name: "Dowell's Lugs Copper Fork-Type Insulated",
+        route: "/dowells/lugs/copper/fork-type/insulated"
+      },
+      {
+        key: [
+          "RS-7249SPL","RS-7249","RS-7251","RS-7280","RS-7252","RS-7253","Dowell's Lugs Copper Fork-Type Non - Insulated"
+        ],
+        name: "Dowell's Lugs Copper Fork-Type Non-Insulated",
+        route: "/dowells/lugs/copper/fork-type/non-insulated"
+      },
+      {
+        key: [
+          "EH-453", "CB-41", "EH-454", "CB-3", "EH-455", "CB-4", "EH-460",
+          "CB-6", "CB-47", "CB-24", "CB-25", "CB-26", "CB-27", "CB-51", "CB-28",
+          "CB-52", "CB-29", "CB-53", "CB-30", "CB-54", "CB-55", "CB-31", "CB-32",
+          "CB-56", "CB-33", "CB-57", "CB-34", "CB-58", "CB-35", "CB-59", "CB-60",
+          "CB-36", "CB-61", "CB-42", "CB-43", "EH-463", "EH-464", "EH-465",
+          "Dowell's Lugs Copper Inline Connector"
+        ],
+        name: "Dowell's Lugs Copper Inline Connector",
+        route: "/dowells/lugs/copper/inline-connector"
+      },
+      {
+        key: [
+          "EHI-508", "EHI-509", "EHI-510", "EHI-511", "EHI-513", "EHI-514",
+          "EHI-515", "EHI-517", "EHI-519", "EHI-521", "EHI-525",
+          "Dowell's Lugs Copper Insulated-ESf Insulated"
+        ],
+        name: "Dowell's Lugs Copper Insulated-ESf Insulated",
+        route: "/dowells/lugs/copper/insulated-esf/insulated"
       }
+,{
+  key: [
+    "TW-0.5-8", "TW-0.5-10", "TW-0.75-8", "TW-0.75-10", "TW-1-8", "TW-1-10",
+    "TW -1.5-8", "TW -1.5-10", "TW-2.5-8", "TW-2.5-10", "TW-4-12", "TW-6-12",
+    "Dowell's Lugs Copper Insulated-ESF Twin Type"
+  ],
+  name: "Dowell's Lugs Copper Insulated-ESF Twin Type",
+  route: "/dowells/lugs/copper/insulated-esf/twin-type"
+}
+,{
+  key: [
+    "PSD-7935", "PSD-7937", "PSD-7938", "PSD-7939", "PSD-7940",
+    "Dowell's Lugs Copper On-Demand Fork Type Pre-Insulated"
+  ],
+  name: "Dowell's Lugs Copper On-Demand Fork Type Pre-Insulated",
+  route: "/dowells/lugs/copper/on-demand/fork-type"
+}
+,{
+  key: [
+    "WPC-01", "WPC-07", "WPC-15", "WPC-16", "WPC-17", "WPC-18", "WPC-19", 
+    "WPC-20", "WPC-21", "WPC-22", "WPC-23", "WPC-24", "WPC-02", "WPC-25", 
+    "WPC-03", "WPC-04", "WPC-26", "WPC-05", "WPC-27", "WPC-6", "WPC-28", 
+    "WPC-29", "WPC-08", "WPC-31", "WPC-32", "WPC-33", "WPC-34", "WPC-35", 
+    "WPC-36", "WPC-10", "WPC-37", "WPC-30", "WPC-38", "WPC-39", "WPC-46", 
+    "WPC-42", "WPC-44", "WPC-43", "WPC-45", "WPC-47", "WPC-101", 
+    "Dowell's Lugs Copper Reducer Type"
+  ],
+  name: "Dowell's Lugs Copper Reducer Type",
+  route: "/dowells/lugs/copper/reducer-type"
+}
+,      {
+  key: [
+    "CP-59", "CP-44", "CP-9", "CP-35", "CP-1", "CP-2", "CP-86", "CP-87", 
+    "CP-3", "CP-5", "CP-7", "CP-8", "CP-88", "CP-89", "CP-90", 
+    "Dowell's Lugs Copper Pin-Type Non-Insulated"
+  ],
+  name: "Dowell's Lugs Copper Pin-Type Non-Insulated",
+  route: "/dowells/lugs/copper/pin-type/non-insulated"
+}
+,{
+  key: [
+    "CPI-60", "CPI-45", "CPI-17", "CPI-40", "CPI-18", "CPI-19", "CPI-20", 
+    "CPI-21", "CPI-22", "CPI-23", "CPI-24", "CPI-25", "Dowell's Lugs Copper Pin-Type Insulated"
+  ],
+  name: "Dowell's Lugs Copper Pin-Type Insulated",
+  route: "/dowells/lugs/copper/pin-type/insulated"
+}
+,{
+  key: [
+    "CP-26", "CP-27", "CP-28", "CP-29", "Dowell's Lugs Copper Pin-Type Double Grip"
+  ],
+  name: "Dowell's Lugs Copper Pin-Type Double Grip",
+  route: "/dowells/lugs/copper/pin-type/double-grip"
+}
+,{
+  key: [
+    "CEB-05", "CEB-06", "CEB-07", "CEB-08", "CEB-09", "CEB-10", "CEB-11", "CEB-12", 
+    "CEB-13", "CEB-14", "CEB-15", "CEB-16", "CEB-17", "CEB-18", "CEB-19", "CEB-20", 
+    "CEB-21", "CEB-22", "CEB-23", "CEB-24", "CEB-25", "CEB-26", "CEB-27", "CEB-28", 
+    "CEB-231", "CEB-29", "CEB-30", "CEB-31", "CEB-32", "CEB-33", "CEB-34", "CEB-35", 
+    "CEB-62", "CEB-76", "Dowell's Lugs Copper On-Demand Tube Terminal Long Barrel"
+  ],
+  name: "Dowell's Lugs Copper On-Demand Tube Terminal Long Barrel",
+  route: "/dowells/lugs/copper/on-demand/tube-terminal"
+}
+,{
+  key: [
+    "CEB-05", "CEB-06", "CEB-07", "CEB-08", "CEB-09", "CEB-10", "CEB-11", "CEB-12", 
+    "CEB-13", "CEB-14", "CEB-15", "CEB-16", "CEB-17", "CEB-18", "CEB-19", "CEB-20", 
+    "CEB-21", "CEB-22", "CEB-23", "CEB-24", "CEB-25", "CEB-26", "CEB-27", "CEB-28", 
+    "CEB-231", "CEB-29", "CEB-30", "CEB-31", "CEB-32", "CEB-33", "CEB-34", "CEB-35", 
+    "CEB-62", "CEB-76", "Dowell's Lugs Copper ON-Demand Inline Connector Long Barrel"
+  ],
+  name: "Dowell's Lugs Copper ON-Demand Inline Connector Long Barrel",
+  route: "/dowells/lugs/copper/on-demand/inline-connector"
+}
+,{
+  key: [
+    "PSD-7437", "PSD-7438", "PSD-7439", "PSD-7441", "PSD-7442", "PSD-7444", "PSD-7445", 
+    "PSD-7446", "PSD-7448", "PSD-7449", "PSD-7450", "PSD-7451", "PSD-7452", "PSD-7453", 
+    "PSD-7454", "PSD-7455", "PSD-7456", "PSD-7457", "PSD-7458", "PSD-7459", "PSD-7460", 
+    "PSD-7462", "PSD-7464", "PSD-7466", "PSD-7467", "PSD-7469", "PSD-7472", "PSD-7473", 
+    "PSD-7475", "PSD-7476", "PSD-7477", "PSD-7479", "PSD-7482", "PSD-7483", "Dowell's Lugs Copper Ring-Type Double Grip"
+  ],
+  name: "Dowell's Lugs Copper Ring-Type Double Grip",
+  route: "/dowells/lugs/copper/ring-type/double-grip"
+}
+,{
+  key: [
+    "RSI-7501", "RSI-7502", "RSI-7054", "RSI-7055", "RSI-7058", "RSI-7056", "RSI-7059", 
+    "RSI-7061", "RSI-7063", "RSI-7062", "RSI-7065", "RSI-7066", "RSI-7067", "RSI-7068", 
+    "RSI-7069", "RSI-7070", "RSI-7071", "RSI-7072", "RSI-7073", "RSI-7075", "RSI-7074", 
+    "RSI-7076", "RSI-7077", "RSI-7079", "RSI-7081", "RSI-7083", "RSI-7084", "RSI-7086", 
+    "RSI-7089", "RSI-7092", "RSI-7093", "RSI-7090", "RSI-7094", "RSI-7096", "RSI-7099", 
+    "RSI-7100", "Dowell's Lugs Copper Ring-Type Insulated"
+  ],
+  name: "Dowell's Lugs Copper Ring-Type Insulated",
+  route: "/dowells/lugs/copper/ring-type/insulated"
+}
+,{
+  key: [
+    "RS-7317", "RS-7318", "RS-7001", "RS-7002", "RS-7123", "RS-7028", "RS-7124", 
+    "RS-7029", "RS-7031", "RS-7030", "RS-7032", "RS-7128", "RS-7033", "RS-7156", 
+    "RS-7034", "RS-7036", "RS-7035", "RS-7132", "RS-7037", "RS-7045", "RS-7046", 
+    "Dowell's Lugs Copper Ring-Type Non-Insulated"
+  ],
+  name: "Dowell's Lugs Copper Ring-Type Non-Insulated",
+  route: "/dowells/lugs/copper/ring-type/non-insulated"
+}
+,{
+  key: [
+    "SND-8352", "SND-8348", "SND-8476", "SND-8359", "SND-8362", 
+    "Dowell's Lugs Copper Snap-Terminal Insulated"
+  ],
+  name: "Dowell's Lugs Copper Snap-Terminal Insulated",
+  route: "/dowells/lugs/copper/snap-terminal/insulated"
+}
+,
+{
+  key: [
+    "SNP-8351", "SNP-8336", "SNP-8356", "SNP-8358", "SNP-8347", 
+    "Dowell's Lugs Copper Snap-Terminal Non-Insulated"
+  ],
+  name: "Dowell's Lugs Copper Snap-Terminal Non-Insulated",
+  route: "/dowells/lugs/copper/snap-terminal/non-insulated"
+}
+,{
+  key: [
+    "CUS-282", "CUS-283", "CUS-284", "CUS-285", "CUS-286", 
+    "CUS-287", "CUS-288", "CUS-289", "CUS-290", "CUS-291", 
+    "CUS-292", "CUS-293", "CUS-294", 
+    "Dowell's Lugs Copper Tube-Terminal Long Barrel"
+  ],
+  name: "Dowell's Lugs Copper Tube-Terminal Long Barrel",
+  route: "/dowells/lugs/copper/tube-terminal/heavy-duty/long-barrel"
+}
+,{
+  key: [
+    "CUS-05", "CUS-06", "CUS-07", "CUS-08", "CUS-09",
+    "CUS-10", "CUS-11", "CUS-12", "CUS-13", "CUS-14",
+    "CUS-15", "CUS-16", "CUS-17", "CUS-18", "CUS-19"
+  ],
+  name: "Dowell's Lugs Copper Tube-Terminal Medium Duty",
+  route: "/dowells/lugs/copper/tube-terminal/medium-duty"
+}
+      
   ];
-  

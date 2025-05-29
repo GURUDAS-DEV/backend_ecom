@@ -199,30 +199,37 @@ async function enquireMail(email, cart_id, subject) {
     const values = [cart_id];
     const result = await executeQuery(query, values);
 
-    // Read Handlebars template
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+
+    // Load and compile Handlebars template
     const templatePath = path.join(__dirname, 'templates', 'emailTemplate.hbs');
     const templateSource = fs.readFileSync(templatePath, "utf8");
     const template = handlebars.compile(templateSource);
 
-    // Register a helper for index increment
     handlebars.registerHelper("inc", function (value) {
       return parseInt(value) + 1;
     });
 
-    // Convert result to Handlebars-friendly format
-    const items = result.map((row, index) => ({
+    const items = result.map((row) => ({
       name: row.name,
       quantity: row.quantity
     }));
 
-    // Generate HTML email
-    const htmlMessage = template({ cart_id, items });
+    const htmlMessage = template({ cart_id, items }); // no need to pass CID into handlebars now
 
     const mailOptions = {
       from: process.env.SMTP_MAIL,
       to: email,
       subject: subject,
-      html: htmlMessage, // Use 'html' instead of 'text'
+      html: htmlMessage,
+      attachments: [
+        {
+          filename: 'signature_sheth.png',
+          path: signPath,
+          cid: 'signature@sheth', // must exactly match the cid in the HTML
+          contentDisposition: 'inline', // force inline, not attachment
+        }
+      ]
     };
 
     await transporter.sendMail(mailOptions);
@@ -233,66 +240,77 @@ async function enquireMail(email, cart_id, subject) {
   }
 }
 
+
 async function quotation_mail(cart_id, reply, hs, dow, m3, urls) {
   try {
+    // Update cart details
+    const updateQuery = `
+      UPDATE cart_details
+      SET hs = $2, dow = $3, m3 = $4
+      WHERE id = $1;
+    `;
+    const updateValues = [cart_id, hs, dow, m3];
+    await executeQuery(updateQuery, updateValues);
 
-    const query = `
-        UPDATE cart_details
-        SET hs = $2, dow = $3, m3 = $4
-        WHERE id = $1;
-      `;
-      const values = [cart_id, hs, dow, m3];
-       await executeQuery(query, values);
-    // Fetch the user_id from cart_details table
+    // Get user_id
     const cartDetails = await executeQuery('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
-    if (!cartDetails) {
+    if (!cartDetails || !cartDetails[0]) {
       throw new Error("Cart not found");
     }
-    
+
     const user_id = cartDetails[0].user_id;
 
-    // Get the user's email and name from user_profile table
+    // Get user email & name
     const userProfile = await executeQuery('SELECT email, name FROM user_details WHERE id = $1', [user_id]);
-    if (!userProfile) {
+    if (!userProfile || !userProfile[0]) {
       throw new Error("User not found");
     }
 
     const { email, name } = userProfile[0];
-    
-    // Download PDFs from URLs (Assuming you are using some utility like axios to download files)
-    const attachments = await Promise.all(urls.map(async (url) => {
+
+    // Prepare quotation PDF attachments
+    const pdfAttachments = await Promise.all(urls.map(async (url) => {
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       return {
-        filename: `Quotation_${url.split('/').pop()}`,  // Adjust naming as needed
-        content: response.data
+        filename: `Quotation_${url.split('/').pop()}`,
+        content: response.data,
       };
     }));
 
-    // Prepare the email content
-    const subject = "Here is your Quotation";
-    const message = `Dear ${name},
+    // Load and compile the Handlebars HTML template
+    const templatePath = path.join(__dirname, 'templates', 'quotation.hbs');
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const template = handlebars.compile(templateSource);
 
-Here is/are the quotation(s) for your enquiry with cart ID: ${cart_id}.
+    // Prepare signature CID
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signatureCid = "signature@sheth";
 
-    ${reply}
+    // Compile email HTML with signature and reply content
+    const htmlMessage = template({
+      name,
+      cart_id,
+      reply,
+      signatureCid,
+    });
 
-Feel free to contact us for any questions or further assistance.
-
-Best regards,
-SHETH TRADING CORPORATION`;
-
-    // Email options
     const mailOptions = {
       from: process.env.SMTP_MAIL,
       to: email,
-      subject: subject,
-      text: message,
-      attachments: attachments  // Add the PDF attachments here
+      subject: "Here is your Quotation",
+      html: htmlMessage,
+      attachments: [
+        ...pdfAttachments,
+        {
+          filename: 'signature_sheth.png',
+          path: signPath,
+          cid: signatureCid,
+          contentDisposition: 'inline',
+        }
+      ]
     };
 
-    // Send email using the transporter
     await transporter.sendMail(mailOptions);
-
     return true;
   } catch (error) {
     console.error("Error sending quotation email:", error);
