@@ -155,31 +155,39 @@ async function executeQuery(query, values = []) {
   }
 
   async function finalizeQuotation(cart_id, heatshrink, dowells, m3, payment, validity, Delivery_charge) {
-    console.log("heatshrink", heatshrink,"dowells",dowells, "m3", m3)
-    try {
-      const results = {};
+  console.log("heatshrink", heatshrink, "dowells", dowells, "m3", m3);
+  try {
+    const results = {};
+    let deliveryChargeUsed = false; // Track if delivery charge has been applied
 
     // Handle Heatshrink if not empty
     if (heatshrink && heatshrink.length > 0) {
-      results.heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity, Delivery_charge);
+      const charge = !deliveryChargeUsed ? Delivery_charge : 0;
+      results.heatshrinkDetails = await processHeatshrink(cart_id, heatshrink, payment, validity, charge);
+      deliveryChargeUsed = true;
     }
 
     // Handle Dowells if not empty
     if (dowells && dowells.length > 0) {
-      results.dowellsDetails = await processDowells(cart_id, dowells, payment, Delivery_charge);
+      const charge = !deliveryChargeUsed ? Delivery_charge : 0;
+      results.dowellsDetails = await processDowells(cart_id, dowells, payment, charge);
+      deliveryChargeUsed = true;
     }
 
     // Handle M3 if not empty
     if (m3 && m3.length > 0) {
-      results.m3Details = await processM3(cart_id, m3, payment, validity, Delivery_charge);
+      const charge = !deliveryChargeUsed ? Delivery_charge : 0;
+      results.m3Details = await processM3(cart_id, m3, payment, validity, charge);
+      deliveryChargeUsed = true;
     }
 
     return results;
-    } catch (error) {
-      console.error("Error in finalizeQuotation:", error);
-      throw error;
-    }
+  } catch (error) {
+    console.error("Error in finalizeQuotation:", error);
+    throw error;
   }
+}
+
   
   async function processHeatshrink(cart_id, heatshrink, payment, validity, Delivery_charge) {
     const quotationDetails = {
