@@ -25,9 +25,11 @@ Handlebars.registerHelper('subtract', function(a, b) {
 
 // Configure AWS SDK
 const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
+  accessKeyId: process.env.R2_ACCESS_KEY_ID,
+  secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  endpoint: process.env.R2_Endpoint,
+  region: "auto", // R2 always uses "auto"
+  signatureVersion: "v4", // required for R2
 });
 
 async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charge,cart_id, name, company_name) {
@@ -124,7 +126,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
     const s3Key = `quotations/3M_HS_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
+      Bucket: process.env.R2_Bucket_Name,
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
@@ -233,7 +235,7 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
     const s3Key = `quotations/DOWELLS_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
+      Bucket: process.env.R2_Bucket_Name,
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
@@ -343,12 +345,12 @@ console.log("pdfs code ", quotationDetails)
     const s3Key = `quotations/3M_MRO_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
+      Bucket: process.env.R2_Bucket_Name,
       Key: s3Key,
       Body: pdfBuffer,
       ContentType: 'application/pdf',
     };
-    
+    S3
     const s3Response = await s3.upload(uploadParams).promise();
     console.log(`PDF uploaded successfully: ${s3Response.Location}`);
     return s3Response.Location;
