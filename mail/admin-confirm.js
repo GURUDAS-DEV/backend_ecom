@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 
 //const SECRET_KEY = process.env.SECRET_KEY;
 

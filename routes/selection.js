@@ -19,7 +19,8 @@ const {
   insertUserMessage
 } = require("../db/order"); 
 
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 
 router.use(express.json());
 

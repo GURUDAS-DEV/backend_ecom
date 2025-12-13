@@ -1,10 +1,12 @@
 const nodemailer = require("nodemailer");
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 const { Pool } = require("pg"); 
 
 
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 const pool = new Pool({
     connectionString: process.env.DB_CONNECTION_STRING  
 });

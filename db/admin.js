@@ -3,7 +3,8 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 const { heatshrinkpdf, Rest3M, dowellspdf } = require("./pdf");
 
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 const pool = new Pool({
     connectionString: process.env.DB_CONNECTION_STRING  
 });

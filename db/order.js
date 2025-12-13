@@ -5,7 +5,8 @@ const handlebars = require("handlebars");
 const axios = require("axios")
 const path = require("path");
 
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 const pool = new Pool({
     connectionString: process.env.DB_CONNECTION_STRING  
 });
@@ -252,7 +253,6 @@ async function quotation_mail(cart_id, reply, hs, dow, m3, urls) {
     const updateValues = [cart_id, hs, dow, m3];
     await executeQuery(updateQuery, updateValues);
 
-    // Get user_id
     const cartDetails = await executeQuery('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
     if (!cartDetails || !cartDetails[0]) {
       throw new Error("Cart not found");

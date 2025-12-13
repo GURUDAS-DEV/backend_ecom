@@ -3,7 +3,8 @@ const router = express.Router();
 const path = require("path");
 const { otpSenderMail } = require("../mail/admin-confirm");
 const { enquireMail, quotation_mail } = require("../db/order");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();  // works locally, ignored on Railway
+
 
 router.use(express.json());
 
