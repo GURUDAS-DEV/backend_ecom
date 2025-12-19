@@ -4,6 +4,7 @@ const fs = require("fs");
 const handlebars = require("handlebars");
 const axios = require("axios")
 const path = require("path");
+const { sendEmail } = require("../utils/sendemail");
 
 require("dotenv").config();  // works locally, ignored on Railway
 
@@ -12,7 +13,7 @@ const pool = new Pool({
 });
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp.hostedemail.com",
   port: 465,
   secure: true,
   auth: {
@@ -197,126 +198,120 @@ async function deleteCartItem(order_id) {
 async function enquireMail(email, cart_id, subject) {
   try {
     const query = `SELECT name, quantity FROM order_details WHERE cart_id = $1`;
-    const values = [cart_id];
-    const result = await executeQuery(query, values);
+    const result = await executeQuery(query, [cart_id]);
 
-    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
-
-    // Load and compile Handlebars template
-    const templatePath = path.join(__dirname, 'templates', 'emailTemplate.hbs');
-    const templateSource = fs.readFileSync(templatePath, "utf8");
+    // Compile template
+    const templatePath = path.join(__dirname, "templates", "emailTemplate.hbs");
+    const templateSource = fs.readFileSync(templatePath, "utf-8");
     const template = handlebars.compile(templateSource);
 
-    handlebars.registerHelper("inc", function (value) {
-      return parseInt(value) + 1;
-    });
+    handlebars.registerHelper("inc", v => parseInt(v) + 1);
 
-    const items = result.map((row) => ({
+    const items = result.map(row => ({
       name: row.name,
       quantity: row.quantity
     }));
 
-    const htmlMessage = template({ cart_id, items }); // no need to pass CID into handlebars now
+    const htmlMessage = template({ cart_id, items });
 
-    const mailOptions = {
-      from: process.env.SMTP_MAIL,
+    // Load signature image as Base64
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signatureBase64 = fs.readFileSync(signPath).toString("base64");
+
+    const attachments = [
+      {
+        filename: "signature_sheth.png",
+        content: signatureBase64,
+      },
+    ];
+
+    await sendEmail({
       to: email,
-      subject: subject,
+      subject,
       html: htmlMessage,
-      attachments: [
-        {
-          filename: 'signature_sheth.png',
-          path: signPath,
-          cid: 'signature@sheth', // must exactly match the cid in the HTML
-          contentDisposition: 'inline', // force inline, not attachment
-        }
-      ]
-    };
+      attachments
+    });
 
-    await transporter.sendMail(mailOptions);
     return true;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw new Error("Error sending email notification");
+
+  } catch (err) {
+    console.error("Error sending enquiry email:", err);
+    throw new Error("Error sending enquiry email");
   }
 }
 
-
 async function quotation_mail(cart_id, reply, hs, dow, m3, urls) {
   try {
-    // Update cart details
-    const updateQuery = `
-      UPDATE cart_details
-      SET hs = $2, dow = $3, m3 = $4
-      WHERE id = $1;
-    `;
-    const updateValues = [cart_id, hs, dow, m3];
-    await executeQuery(updateQuery, updateValues);
+    await executeQuery(`
+      UPDATE cart_details 
+      SET hs = $2, dow = $3, m3 = $4 
+      WHERE id = $1`,
+      [cart_id, hs, dow, m3]
+    );
 
-    const cartDetails = await executeQuery('SELECT user_id FROM cart_details WHERE id = $1', [cart_id]);
-    if (!cartDetails || !cartDetails[0]) {
-      throw new Error("Cart not found");
-    }
+    const cartDetails = await executeQuery(
+      "SELECT user_id FROM cart_details WHERE id = $1",
+      [cart_id]
+    );
+    if (!cartDetails[0]) throw new Error("Cart not found");
 
     const user_id = cartDetails[0].user_id;
 
-    // Get user email & name
-    const userProfile = await executeQuery('SELECT email, name FROM user_details WHERE id = $1', [user_id]);
-    if (!userProfile || !userProfile[0]) {
-      throw new Error("User not found");
-    }
+    const userProfile = await executeQuery(
+      "SELECT email, name FROM user_details WHERE id = $1",
+      [user_id]
+    );
+    if (!userProfile[0]) throw new Error("User not found");
 
     const { email, name } = userProfile[0];
 
-    // Prepare quotation PDF attachments
-    const pdfAttachments = await Promise.all(urls.map(async (url) => {
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
-      return {
-        filename: `Quotation_${url.split('/').pop()}`,
-        content: response.data,
-      };
-    }));
+    // Load PDFs
+    const pdfAttachments = await Promise.all(
+      urls.map(async (url) => {
+        const response = await axios.get(url, { responseType: "arraybuffer" });
+        return {
+          filename: `Quotation_${url.split("/").pop()}.pdf`,
+          content: Buffer.from(response.data).toString("base64"),
+        };
+      })
+    );
 
-    // Load and compile the Handlebars HTML template
-    const templatePath = path.join(__dirname, 'templates', 'quotation.hbs');
-    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    // Load signature
+    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
+    const signatureBase64 = fs.readFileSync(signPath).toString("base64");
+
+    // Compile HTML email
+    const templatePath = path.join(__dirname, "templates", "quotation.hbs");
+    const templateSource = fs.readFileSync(templatePath, "utf-8");
     const template = handlebars.compile(templateSource);
 
-    // Prepare signature CID
-    const signPath = path.resolve(__dirname, "templates", "signature_sheth.png");
-    const signatureCid = "signature@sheth";
-
-    // Compile email HTML with signature and reply content
     const htmlMessage = template({
       name,
       cart_id,
       reply,
-      signatureCid,
     });
 
-    const mailOptions = {
-      from: process.env.SMTP_MAIL,
+    await sendEmail({
       to: email,
       subject: "Here is your Quotation",
       html: htmlMessage,
       attachments: [
         ...pdfAttachments,
         {
-          filename: 'signature_sheth.png',
-          path: signPath,
-          cid: signatureCid,
-          contentDisposition: 'inline',
+          filename: "signature_sheth.png",
+          content: signatureBase64,
         }
       ]
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
     return true;
-  } catch (error) {
-    console.error("Error sending quotation email:", error);
+
+  } catch (err) {
+    console.error("Error sending quotation email:", err);
     return false;
   }
 }
+
 
 const insertSubscription = async (email) => {
   const query = "INSERT INTO sub (email) VALUES ($1) RETURNING *";

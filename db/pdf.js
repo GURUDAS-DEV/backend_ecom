@@ -350,7 +350,6 @@ console.log("pdfs code ", quotationDetails)
       Body: pdfBuffer,
       ContentType: 'application/pdf',
     };
-    S3
     const s3Response = await s3.upload(uploadParams).promise();
     console.log(`PDF uploaded successfully: ${s3Response.Location}`);
     return s3Response.Location;
