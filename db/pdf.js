@@ -123,7 +123,7 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
     
     // Upload to S3
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/3M_HS_${cart_id}_${randomThreeDigit}.pdf`;
+    const s3Key = `3M_HS_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.R2_Bucket_Name,
@@ -134,7 +134,10 @@ async function heatshrinkpdf(quotationDetails, payment, validity, Delivery_charg
     
     const s3Response = await s3.upload(uploadParams).promise();
     console.log(`PDF uploaded successfully: ${s3Response.Location}`);
-    return s3Response.Location;
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${s3Key}`;
+console.log("Public PDF URL:", publicUrl);
+return publicUrl;
+
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
@@ -232,7 +235,7 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
     
     // Upload to S3
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/DOWELLS_${cart_id}_${randomThreeDigit}.pdf`;
+    const s3Key = `DOWELLS_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.R2_Bucket_Name,
@@ -243,7 +246,10 @@ async function dowellspdf(quotationDetails, payment, Delivery_charge,cart_id, na
     
     const s3Response = await s3.upload(uploadParams).promise();
     console.log(`PDF uploaded successfully: ${s3Response.Location}`);
-    return s3Response.Location;
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${s3Key}`;
+console.log("Public PDF URL:", publicUrl);
+return publicUrl;
+
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
@@ -342,7 +348,7 @@ console.log("pdfs code ", quotationDetails)
     
     // Upload to S3 with the same naming convention as before
     const randomThreeDigit = Math.floor(100 + Math.random() * 900);
-    const s3Key = `quotations/3M_MRO_${cart_id}_${randomThreeDigit}.pdf`;
+    const s3Key = `3M_MRO_${cart_id}_${randomThreeDigit}.pdf`;
     
     const uploadParams = {
       Bucket: process.env.R2_Bucket_Name,
@@ -352,7 +358,10 @@ console.log("pdfs code ", quotationDetails)
     };
     const s3Response = await s3.upload(uploadParams).promise();
     console.log(`PDF uploaded successfully: ${s3Response.Location}`);
-    return s3Response.Location;
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${s3Key}`;
+    console.log("Public PDF URL:", publicUrl);
+    return publicUrl;
+
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
