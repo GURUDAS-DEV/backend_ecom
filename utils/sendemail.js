@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendEmail({ to, subject, html, text, attachments = [] }) {
   try {
     const response = await resend.emails.send({
-      from: `Sheth Enterprise <${process.env.SENDER_EMAIL}>`,
+      from: `Sheth Trading Corporation <${process.env.SENDER_EMAIL}>`,
       to,
       subject,
       html,
