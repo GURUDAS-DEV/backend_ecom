@@ -3,7 +3,24 @@ const router = express.Router();
 const path = require("path");
 const { enquiriesDb, updateStatus, quotation, fetchAndCategorizeData, finalizeQuotation, discard } = require("../db/admin");
 const { quotation_mail } = require("../db/order");
+const { getOrderAnalytics } = require("../db/analytics");
+const searchData = require("../db/searchData"); // adjust path
+const { Pool } = require("pg");
 require("dotenv").config();  // works locally, ignored on Railway
+
+const pool = new Pool({
+    connectionString: process.env.DB_CONNECTION_STRING  
+});
+
+async function executeQuery(query, values = []) {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(query, values);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
 
 router.use(express.json());
 
@@ -111,6 +128,171 @@ router.post("/discard", async (req, res) => {
         res.status(500).json({ success: false, message: "An error occurred while discarding item" });
     }
 });
+
+router.get("/analytics", async (req, res) => {
+  try {
+    const data = await getOrderAnalytics();
+
+    res.status(200).json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+    console.error("Error in /analytics", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch analytics"
+    });
+  }
+});
+
+function mapItemToCategory(itemCode) {
+  for (const category of searchData) {
+    if (category.key.includes(itemCode)) {
+      return category.name;
+    }
+  }
+  return "Uncategorized";
+}
+
+router.get("/analytics/category", async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        COALESCE(sku, cat_no) AS item_code,
+        COUNT(*) AS total_orders,
+        SUM(quantity) AS total_quantity
+      FROM order_details
+      WHERE cart_id IS NOT NULL
+      GROUP BY item_code;
+    `;
+
+    const result = await executeQuery(query);
+
+    const categoryMap = {};
+
+    for (const row of result) {
+      const itemCode = row.item_code;
+      const category = mapItemToCategory(itemCode);
+
+      const orders = parseInt(row.total_orders);
+      const quantity = parseInt(row.total_quantity);
+
+      // 🧠 Initialize category if not exists
+      if (!categoryMap[category]) {
+        categoryMap[category] = {
+          category,
+          total_orders: 0,
+          total_quantity: 0,
+          items: [] // ✅ NEW
+        };
+      }
+
+      // 🔥 Push item inside category
+      categoryMap[category].items.push({
+        item_code: itemCode,
+        total_orders: orders,
+        total_quantity: quantity,
+      });
+
+      // 🔥 Aggregate category totals
+      categoryMap[category].total_orders += orders;
+      categoryMap[category].total_quantity += quantity;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: Object.values(categoryMap),
+    });
+
+  } catch (error) {
+    console.error("Error in /analytics/category", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed category analytics",
+    });
+  }
+});
+
+router.get("/analytics/sort", async (req, res) => {
+  try {
+    const { order = "highest" } = req.query;
+
+    const query = `
+      SELECT 
+        COALESCE(sku, cat_no) AS item_code,
+        COUNT(*) AS total_orders,
+        SUM(quantity) AS total_quantity
+      FROM order_details
+      WHERE cart_id IS NOT NULL
+      GROUP BY item_code;
+    `;
+
+    const result = await executeQuery(query);
+
+    const categoryMap = {};
+
+    for (const row of result) {
+      const itemCode = row.item_code;
+      const category = mapItemToCategory(itemCode);
+
+      const orders = parseInt(row.total_orders);
+      const quantity = parseInt(row.total_quantity);
+
+      if (!categoryMap[category]) {
+        categoryMap[category] = {
+          category,
+          total_orders: 0,
+          total_quantity: 0,
+          items: []
+        };
+      }
+
+      // push item
+      categoryMap[category].items.push({
+        item_code: itemCode,
+        total_orders: orders,
+        total_quantity: quantity,
+      });
+
+      // aggregate category totals
+      categoryMap[category].total_orders += orders;
+      categoryMap[category].total_quantity += quantity;
+    }
+
+    let categories = Object.values(categoryMap);
+
+    // 🔥 SORT ITEMS INSIDE EACH CATEGORY
+    categories.forEach((cat) => {
+      cat.items.sort((a, b) => {
+        return order === "lowest"
+          ? a.total_orders - b.total_orders
+          : b.total_orders - a.total_orders;
+      });
+    });
+
+    // 🔥 SORT CATEGORIES
+    categories.sort((a, b) => {
+      return order === "lowest"
+        ? a.total_orders - b.total_orders
+        : b.total_orders - a.total_orders;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+
+  } catch (error) {
+    console.error("Error in /analytics/sort", error);
+    res.status(500).json({
+      success: false,
+      message: "Sorting failed",
+    });
+  }
+});
+
 
 
 module.exports = router;
